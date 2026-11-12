@@ -327,10 +327,11 @@
         ], { duration: 600, easing: E.out, delay: 300 });
         anim(hero, [{ opacity: 0, transform: 'translateY(-60vh)' }, { opacity: 1, transform: 'translateY(0)', offset: 0.7 }, { opacity: 1, transform: 'translateY(-14px)', offset: 0.85 }, { opacity: 1, transform: 'none' }], { duration: 900, easing: E.in, delay: 450 })
           .then(() => { const r = sprite.getBoundingClientRect(); burst(el, r.left + r.width / 2, r.bottom - 6, { names: ['sparkle-s'], n: 8, spread: 60, up: 0, scale: 3 }); });
-        await anim(box, [{ opacity: 0, transform: 'translateY(50px)' }, { opacity: 1, transform: 'none' }], { duration: 650, easing: E.drawer, delay: 900 });
+        await anim(box, [{ opacity: 0, transform: 'translateY(50px)' }, { opacity: 1, transform: 'none' }], { duration: 550, easing: E.drawer, delay: 450 });
         st(every(autoPlay, 2600, 4200, 2200));
         if (FX.reduce.matches) { finish(); return typedP; }
-        const cps = Math.max(38, text.length / 6);
+        /* los textos largos se escriben más rápido: nunca tarda más de ~3 s */
+        const cps = Math.max(60, text.length / 3);
         let last = performance.now();
         const tick = (t) => {
           if (done) return;
