@@ -2,7 +2,7 @@
 
 Sitio estático (HTML + CSS + JS, sin dependencias ni build) con mensajes de ánimo para Milagros.
 
-**Recorrido:** caja de regalo (se abre sola si nadie la toca) → una carta por persona, cada una con su propio estilo y transición → desfile de nombres y remolino final → cae un cofre con todas las cartas, que se abre para volver a leer cualquiera.
+**Recorrido:** caja de regalo (se abre al tocarla, y empieza la canción) → una carta por persona, cada una con su propio estilo y transición → desfile de nombres y remolino final → cae un cofre con todas las cartas, que se abre para volver a leer cualquiera.
 
 ## Editar los mensajes (lo único que tienes que tocar)
 
@@ -75,4 +75,12 @@ git push -u origin main
 - Quien lee decide cuándo pasar a la siguiente carta. Cuando una carta termina de aparecer, el botón "Siguiente" late suavemente para indicarlo.
 - Se puede avanzar con los botones de abajo, tocando un sobre del tendedero, con las flechas del teclado o deslizando el dedo en el móvil.
 - `Esc` vuelve al cofre (una vez desbloqueado).
-- El navegador recuerda que el cofre ya fue abierto y muestra un atajo en la portada.
+- El navegador recuerda que el cofre ya fue abierto. Desde entonces aparece un ícono discreto de cofre arriba a la derecha, tanto en la portada como en cada carta, para ir directo al cofre.
+
+## Canción
+
+1. Copia el archivo `.mp3` en la carpeta [`musica/`](musica/).
+2. En `mensajes.js`, dentro de `AJUSTES`, escribe su nombre en `cancion` (por ejemplo `'musica/the-middle.mp3'`) y ajusta `volumen` (de 0 a 1).
+3. La canción empieza en el momento en que ella abre la caja y suena una sola vez. Si no hay archivo, todo funciona igual, sin música.
+4. Mientras suena aparece un ícono discreto de parlante arriba a la derecha (junto al cofre) para silenciarla o reactivarla.
+5. Cuando ella abre el cofre, si la canción sigue sonando, se apaga suavemente y ya no vuelve a sonar.

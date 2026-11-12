@@ -339,7 +339,7 @@ img.px { image-rendering: pixelated; image-rendering: crisp-edges; display: bloc
   background:
     radial-gradient(120% 60% at 50% 105%, rgba(255, 134, 176, 0.55), transparent 60%),
     linear-gradient(180deg, #140d20 0%, #241431 40%, #4a2246 75%, #8c3d63 100%);
-  grid-template-rows: 1fr auto auto auto auto auto 0.5fr;
+  grid-template-rows: 1fr auto auto auto 0.6fr;
   align-content: center;
   gap: 0;
   padding: calc(28px + var(--safe-t)) 20px calc(28px + var(--safe-b));
@@ -418,7 +418,6 @@ img.px { image-rendering: pixelated; image-rendering: crisp-edges; display: bloc
 .intro-hint { position: relative; z-index: 2; margin-top: 30px; font-family: var(--f-pixel); font-size: 0.95rem; color: var(--gold); animation: hintPulse 2.4s ease-in-out infinite; }
 @keyframes hintPulse { 0%, 100% { color: var(--gold); text-shadow: none; } 50% { color: #fff2b8; text-shadow: 0 0 14px rgba(255, 210, 94, 0.6); } }
 .intro-count { position: relative; z-index: 2; margin-top: 8px; font-family: var(--f-hand); font-size: 1.35rem; color: rgba(255, 235, 244, 0.7); align-self: start; }
-.intro-chest { position: relative; z-index: 2; margin-top: 6px; }
 
 /* =========================================================
    1) CARTA
@@ -903,9 +902,29 @@ img.px { image-rendering: pixelated; image-rendering: crisp-edges; display: bloc
   87.5% { transform: translate(calc(var(--rx) * 0.707), calc(var(--ry) * -0.707)) scale(0.75); opacity: 0.45; }
   100% { transform: translate(var(--rx), 0) scale(0.9); }
 }
-.intro-auto { position: relative; z-index: 2; display: grid; justify-items: center; gap: 6px; margin-top: 12px; font-family: var(--f-hand); font-size: 1.15rem; color: rgba(255, 235, 244, 0.62); }
-.intro-auto i { display: block; width: 150px; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
-.intro-auto u { display: block; height: 100%; background: var(--gold); transform-origin: 0 50%; transform: scaleX(0); }
+/* botón discreto del cofre (arriba a la derecha) */
+.secret-chest {
+  position: fixed; top: calc(10px + var(--safe-t)); right: 10px; z-index: 40;
+  display: grid; place-items: center; width: 42px; height: 42px; padding: 0;
+  border: 0; border-radius: 12px; background: transparent;
+  opacity: 0.22; cursor: pointer; touch-action: manipulation;
+  transition: opacity 250ms ease, background-color 250ms ease, transform 160ms var(--ease-out);
+}
+.secret-chest[hidden] { display: none; }
+/* esquina superior derecha: [silencio] [cofre] */
+.corner { position: fixed; top: calc(10px + var(--safe-t)); right: 10px; z-index: 40; display: flex; gap: 4px; }
+.corner .secret-chest { position: static; }
+.secret-chest.mute { color: #fff; }
+.secret-chest.mute svg { width: 20px; height: 20px; fill: currentColor; filter: drop-shadow(1px 0 0 #2b1733) drop-shadow(-1px 0 0 #2b1733) drop-shadow(0 1px 0 #2b1733) drop-shadow(0 -1px 0 #2b1733); }
+.secret-chest.mute .i-off { display: none; }
+.secret-chest.mute.off .i-on { display: none; }
+.secret-chest.mute.off .i-off { display: block; }
+.secret-chest.mute.off { opacity: 0.5; }
+.th-intro .secret-chest { position: absolute; }
+.secret-chest:hover, .secret-chest:focus-visible { opacity: 1; background: rgba(29, 19, 38, 0.55); }
+.secret-chest:active { transform: scale(0.92); opacity: 1; }
+.secret-chest:focus-visible { outline: 2px dashed var(--gold); outline-offset: 2px; }
+.sc-ico { width: 26px; height: auto; }
 
 /* =========================================================
    FINAL — detalles
@@ -1039,7 +1058,6 @@ img.px { image-rendering: pixelated; image-rendering: crisp-edges; display: bloc
   .gift-inner { margin-top: calc(var(--gw) * 0.35); }
   .intro-hint { margin-top: 10px; font-size: 0.85rem; }
   .intro-count { margin-top: 2px; font-size: 1.1rem; }
-  .intro-auto { margin-top: 4px; }
   .intro-moon { width: 56px; height: auto; }
   .note-inner { max-height: calc(100dvh - 150px); }
   .tanzaku { max-height: calc(100dvh - 165px); padding-top: 34px; }
@@ -1056,7 +1074,7 @@ img.px { image-rendering: pixelated; image-rendering: crisp-edges; display: bloc
   .finale-foot { gap: 4px; }
 }
 @media (max-width: 600px) {
-  .intro-moon { width: 56px; height: auto; top: calc(3% + var(--safe-t)); right: 5%; }
+  .intro-moon { width: 56px; height: auto; top: calc(3% + var(--safe-t)); right: auto; left: 5%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

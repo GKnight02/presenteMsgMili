@@ -103,7 +103,7 @@
     pegs.forEach((p) => p.classList.add('jolt'));
     joltT = setTimeout(() => pegs.forEach((p) => p.classList.remove('jolt')), 1300);
   }
-  toChest.prepend(PX.img('chestBody', 1, 'chip-ico'));
+  toChest.appendChild(PX.img('chestBody', 1, 'sc-ico'));
 
   async function show(scene, tx = 'fade', origin, dir = 1) {
     if (busy) return false;
@@ -194,6 +194,58 @@
     updateUI();
   }
 
+  /* ---- canción: suena una sola vez, desde que se abre la caja ---- */
+  const song = (() => {
+    const src = typeof aj.cancion === 'string' ? aj.cancion.trim() : '';
+    if (!src) return null;
+    const a = new Audio();
+    a.preload = 'auto';
+    a.loop = false;
+    a.src = src;
+    a.addEventListener('error', () => console.warn(`No se pudo cargar la canción "${src}". Revisa el nombre en mensajes.js y que el archivo esté en la carpeta musica.`));
+    return a;
+  })();
+  const muteBtn = document.getElementById('muteBtn');
+  let songStarted = false, songDone = false, fadeTok = 0;
+  const showMute = () => { muteBtn.hidden = !(song && songStarted && !songDone); };
+  /* cambia el volumen poco a poco; devuelve una promesa al terminar */
+  function fadeTo(target, ms) {
+    const tok = ++fadeTok, from = song.volume, t0 = performance.now();
+    return new Promise((res) => {
+      const step = () => {
+        if (tok !== fadeTok) return res();
+        const p = Math.min(1, (performance.now() - t0) / ms);
+        song.volume = from + (target - from) * p;
+        if (p < 1) requestAnimationFrame(step); else res();
+      };
+      requestAnimationFrame(step);
+    });
+  }
+  function playSong() {
+    if (!song || songStarted) return;
+    songStarted = true;
+    const target = FX.clamp(Number(aj.volumen ?? 0.7) || 0, 0, 1);
+    song.volume = 0;
+    song.play().then(() => { showMute(); fadeTo(target, 2000); })
+      .catch(() => { /* sin archivo o el navegador no lo permitió: sigue sin música */ });
+  }
+  /* al abrir el cofre: si todavía suena, se apaga suavemente y no vuelve */
+  function stopSong(ms = 2200) {
+    if (!song || !songStarted || songDone) return;
+    songDone = true;
+    showMute();
+    if (song.paused) return;
+    fadeTo(0, ms).then(() => song.pause());
+  }
+  if (song) song.addEventListener('ended', () => { songDone = true; showMute(); });
+  muteBtn.addEventListener('click', () => {
+    song.muted = !song.muted;
+    muteBtn.classList.toggle('off', song.muted);
+    muteBtn.setAttribute('aria-pressed', String(song.muted));
+    muteBtn.setAttribute('aria-label', song.muted ? 'Activar la música' : 'Silenciar la música');
+    muteBtn.title = song.muted ? 'Activar música' : 'Silenciar';
+  });
+
   function goIntro() {
     if (busy) return;
     state.mode = 'intro';
@@ -202,6 +254,7 @@
       data,
       unlocked: state.unlocked,
       onOpen: (o) => goMsg(0, 'iris', o),
+      onStart: playSong,
       onChest: () => goChest('blur')
     }), current ? 'blur' : 'fade');
     updateUI();
@@ -216,6 +269,7 @@
 
   function goChest(tx = 'blur', origin, ceremony = false) {
     if (busy) return;
+    stopSong();
     state.mode = 'chest';
     state.fromChest = true;
     state.unlocked = true;

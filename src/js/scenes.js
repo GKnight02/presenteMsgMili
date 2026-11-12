@@ -759,7 +759,7 @@
   /* ---------------------------------------------------------
      INTRO — caja de regalo con cartas
      --------------------------------------------------------- */
-  function intro({ data, unlocked, onOpen, onChest }) {
+  function intro({ data, unlocked, onOpen, onChest, onStart }) {
     const N = data.mensajes.length;
     const el = h('section', 'scene th-intro');
     el.dataset.tint = '#2d1838';
@@ -824,29 +824,30 @@
     const touch = !FX.canHover.matches;
     const hint = h('p', 'intro-hint', touch ? 'Toca la caja para abrirla' : 'Haz clic en la caja para abrirla');
     const count = h('p', 'intro-count', `<b>0</b> ${N === 1 ? 'carta te espera' : 'cartas te esperan'}`);
-    const AUTO = 12000;
-    const auto = h('div', 'intro-auto', '<span>o espera un momento y se abrirá sola</span><i><u></u></i>');
-    el.append(copy, gift, hint, count, auto);
+    el.append(copy, gift, hint, count);
 
+    /* atajo discreto al cofre (arriba a la derecha), solo si ya se abrió antes */
     let chestLink;
     if (unlocked) {
-      chestLink = h('button', 'link-btn intro-chest', 'Ir directo a mi cofre →');
+      chestLink = h('button', 'secret-chest');
       chestLink.type = 'button';
+      chestLink.setAttribute('aria-label', 'Ir directo a mi cofre');
+      chestLink.title = 'Mi cofre';
+      chestLink.appendChild(PX.img('chestBody', 1, 'sc-ico'));
       chestLink.addEventListener('click', onChest);
       el.appendChild(chestLink);
     }
 
-    let opened = false, autoAnim = null, autoTimer = 0;
+    let opened = false;
     const open = async () => {
       if (opened) return;
       opened = true;
+      if (onStart) onStart();
       st.stop();
-      clearTimeout(autoTimer);
-      if (autoAnim) autoAnim.pause();
       gift.classList.remove('idle');
       gift.disabled = true;
       anim(copy, [{ opacity: 1, filter: 'blur(0)' }, { opacity: 0, filter: 'blur(8px)', transform: 'translateY(-16px)' }], { duration: 600 });
-      [hint, count, chestLink, auto].forEach((x) => x && anim(x, [{ opacity: 1 }, { opacity: 0 }], { duration: 300 }));
+      [hint, count, chestLink].forEach((x) => x && anim(x, [{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }));
       anim(rays, [{ opacity: 0.5, scale: 1 }, { opacity: 1, scale: 1.8 }], { duration: 1600, easing: E.out });
       await anim(inner, [
         { transform: 'rotate(0)' }, { transform: 'rotate(-4deg)' }, { transform: 'rotate(4deg)' }, { transform: 'rotate(-6deg) scale(1.03)' },
@@ -875,10 +876,10 @@
 
     return {
       el,
-      destroy() { st.stop(); stopShoot(); clearTimeout(autoTimer); if (autoAnim) autoAnim.cancel(); },
+      destroy() { st.stop(); stopShoot(); },
       async enter() {
         const ws = title.querySelectorAll('.w');
-        hide(eyebrow, [...ws], lead, gift, hint, count, chestLink, auto, moon);
+        hide(eyebrow, [...ws], lead, gift, hint, count, moon);
         anim(moon, [{ opacity: 0, transform: 'translateY(20px) rotate(-20deg)' }, { opacity: 1, transform: 'none' }], { duration: 1800, easing: E.out });
         anim(eyebrow, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: 200 });
         ws.forEach((w, i) => anim(w, [{ opacity: 0, transform: 'translateY(0.5em)', filter: 'blur(6px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 800, delay: 380 + i * 90 }));
@@ -887,7 +888,7 @@
         await anim(gift, [{ opacity: 0, transform: 'translateY(40px) scale(0.94)' }, { opacity: 1, transform: 'none' }], { duration: 900, delay: 1100, easing: E.back });
         if (opened) return;
         gift.classList.add('idle');
-        fadeUp([hint, count, auto, chestLink].filter(Boolean), { step: 120, y: 6 });
+        fadeUp([hint, count], { step: 120, y: 6 });
         const b = count.querySelector('b');
         const t0 = performance.now();
         const tickCount = () => {
@@ -906,14 +907,6 @@
           const e = pick(envs);
           anim(e, [{ transform: 'translate(-50%, 0)' }, { transform: 'translate(-50%, -38%) rotate(-6deg)' }, { transform: 'translate(-50%, -30%) rotate(5deg)' }, { transform: 'translate(-50%, 0)' }], { duration: 900, easing: E.out, fill: 'none' });
         }, 1400, 2600, 800));
-        if (!FX.reduce.matches) {
-          autoAnim = auto.querySelector('u').animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: AUTO, easing: 'linear', fill: 'forwards' });
-          autoTimer = setTimeout(open, AUTO);
-          gift.addEventListener('pointerenter', () => { if (autoAnim && !opened) autoAnim.pause(); });
-          gift.addEventListener('pointerleave', () => { if (autoAnim && !opened) autoAnim.play(); });
-          autoAnim.finished.then(() => { if (!opened) open(); }, () => {});
-          clearTimeout(autoTimer);
-        }
       }
     };
   }

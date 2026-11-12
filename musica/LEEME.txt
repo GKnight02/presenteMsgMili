@@ -1,0 +1,9 @@
+Pon aquí el archivo de la canción (formato .mp3).
+
+Después abre mensajes.js y, al final, en AJUSTES, escribe su nombre en "cancion".
+Por ejemplo, si el archivo se llama the-middle.mp3:
+
+  cancion: 'musica/the-middle.mp3',
+
+La canción empieza cuando ella abre la caja y suena una sola vez.
+Si no hay archivo, la página funciona igual, solo que sin música.

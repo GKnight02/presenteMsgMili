@@ -126,4 +126,14 @@ const AJUSTES = {
 
   // Frase debajo del mensaje final
   finalSub: 'Cada una de estas cartas es tuya para siempre. Vuelve a leerlas cuando lo necesites.',
+
+  // Canción (opcional): empieza a sonar justo cuando ella abre la caja
+  // y suena una sola vez (no se repite).
+  // 1. Copia el archivo .mp3 dentro de la carpeta "musica".
+  // 2. Escribe aquí su nombre, por ejemplo 'musica/the-middle.mp3'.
+  // Déjalo vacío ('') si no quieres música.
+  cancion: 'musica/cancion.mp3',
+
+  // Volumen de la canción, de 0 (silencio) a 1 (máximo)
+  volumen: 0.5,
 };
