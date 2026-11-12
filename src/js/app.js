@@ -20,7 +20,7 @@
   const para = aj.para || 'ti';
   const data = {
     para,
-    mensajes: lista.map((m, i) => ({ de: String(m.nombre || m.de || `Alguien especial ${i + 1}`).trim(), mensaje: clean(m.mensaje) })),
+    mensajes: lista.map((m, i) => ({ de: String(m.nombre || m.de || `Alguien especial ${i + 1}`).trim(), mensaje: clean(m.mensaje), estilo: m.estilo })),
     final: {
       lineas: Array.isArray(aj.finalLineas) && aj.finalLineas.length ? aj.finalLineas : ['Nunca estás sola', para],
       sub: aj.finalSub || 'Cada una de estas cartas es tuya para siempre.'
@@ -35,7 +35,6 @@
   const counter = document.getElementById('counter');
   const dots = document.getElementById('dots');
   const toChest = document.getElementById('toChest');
-  const autoBtn = document.getElementById('autoBtn');
   const KEY = 'cartas-mili-cofre';
 
   const store = {
@@ -49,9 +48,9 @@
   let busy = false;
 
   /* ---- tendedero: un sobre colgado por carta ---- */
-  const SEALS = (SCENES.SEALS && SCENES.SEALS.length) ? SCENES.SEALS : ['rose'];
-  const sealOf = (i) => SEALS[i % SEALS.length];
-  const closedSprite = (i) => (sealOf(i) === 'rose' ? 'envelope' : `envelope-${sealOf(i)}`);
+  SCENES.assign(msgs);
+  const sealOf = SCENES.sealFor;
+  const closedSprite = SCENES.envFor;
   const PEG = 44; // separacion entre sobres (px)
   const nePic = nextBtn.querySelector('.ne-pic');
   const neK = nextBtn.querySelector('.ne-k');
@@ -137,8 +136,6 @@
     const inMsg = state.mode === 'msg';
     nav.hidden = !inMsg;
     toChest.hidden = !(inMsg && state.unlocked);
-    autoBtn.hidden = !inMsg;
-    if (!inMsg) stopAuto();
     if (!inMsg) return;
     const idx = state.idx;
     counter.textContent = `${idx + 1} de ${N}`;
@@ -174,73 +171,17 @@
     nextBtn.setAttribute('aria-label', last ? `${k} ${de}` : `Carta siguiente, ${de}`);
   }
 
-  /* ---- avance automatico ----
-     Cuando la carta termina de mostrarse empieza a contar un tiempo de
-     lectura (segun el largo del mensaje). La barra del boton "Siguiente"
-     se llena y al completarse pasa sola a la siguiente carta. */
-  const AUTO_KEY = 'cartas-mili-auto';
-  const auto = {
-    on: (() => { try { return localStorage.getItem(AUTO_KEY) !== '0'; } catch (e) { return true; } })(),
-    token: 0, p: 0, hold: 0, scrollEl: null, userScrolled: false
-  };
-  const words = (t) => String(t).split(/\s+/).filter(Boolean).length;
-  const readTime = (m) => FX.clamp(4000 + words(m.mensaje) * 360, 8000, 50000);
-  const setP = (p) => nextBtn.style.setProperty('--p', p.toFixed(4));
-  function paintAuto() {
-    autoBtn.classList.toggle('off', !auto.on);
-    autoBtn.setAttribute('aria-pressed', String(auto.on));
-    autoBtn.querySelector('.lbl').textContent = auto.on ? 'Pausar' : 'Reproducir';
-    autoBtn.setAttribute('aria-label', auto.on ? 'Pausar el avance automático' : 'Reanudar el avance automático');
-    nextBtn.classList.toggle('auto', auto.on);
-  }
-  function toggleAuto() {
-    auto.on = !auto.on;
-    try { localStorage.setItem(AUTO_KEY, auto.on ? '1' : '0'); } catch (e) { /* sin almacenamiento */ }
-    paintAuto();
-  }
-  function stopAuto() { auto.token++; auto.p = 0; setP(0); }
-  function findScroll(el) {
-    return [...el.querySelectorAll('.scroll')].find((s) => s.scrollHeight > s.clientHeight + 4) || null;
-  }
-  function startAuto(scene, i) {
-    const tok = ++auto.token;
-    auto.p = 0;
-    setP(0);
-    (scene.entered || Promise.resolve()).then(() => FX.wait(500)).then(() => {
-      if (tok !== auto.token || state.mode !== 'msg') return;
-      const dur = readTime(msgs[i]);
-      auto.scrollEl = findScroll(scene.el);
-      auto.userScrolled = false;
-      if (auto.scrollEl) auto.scrollEl.scrollTop = 0;
-      let last = performance.now();
-      const loop = (t) => {
-        if (tok !== auto.token) return;
-        const dt = Math.min(100, t - last);
-        last = t;
-        if (auto.on && !document.hidden && !busy && performance.now() > auto.hold) {
-          auto.p = Math.min(1, auto.p + dt / dur);
-          const se = auto.scrollEl;
-          if (se && !auto.userScrolled) {
-            const max = se.scrollHeight - se.clientHeight;
-            if (max > 4) se.scrollTop = max * FX.clamp((auto.p - 0.15) / 0.7, 0, 1);
-          }
-        }
-        setP(auto.p);
-        if (auto.p >= 1) { auto.token++; next(); return; }
-        requestAnimationFrame(loop);
-      };
-      requestAnimationFrame(loop);
+  /* ---- la persona pasa de carta cuando quiera ----
+     Cuando la carta termina de mostrarse, el botón "Siguiente" late
+     suavemente para indicar que puede continuar. */
+  let nudgeTok = 0;
+  function nudgeWhenReady(scene) {
+    const tok = ++nudgeTok;
+    nextBtn.classList.remove('nudge');
+    (scene.entered || Promise.resolve()).then(() => FX.wait(900)).then(() => {
+      if (tok === nudgeTok && state.mode === 'msg' && current === scene) nextBtn.classList.add('nudge');
     });
   }
-  /* si la persona toca o hace scroll, la cuenta espera unos segundos */
-  const holdAuto = (e) => {
-    if (state.mode !== 'msg') return;
-    auto.hold = performance.now() + 4000;
-    if (auto.scrollEl && e.target instanceof Node && auto.scrollEl.contains(e.target)) auto.userScrolled = true;
-  };
-  ['wheel', 'touchstart', 'pointerdown'].forEach((ev) => stage.addEventListener(ev, holdAuto, { passive: true }));
-  autoBtn.addEventListener('click', toggleAuto);
-  paintAuto();
 
   function goMsg(i, tx, origin, dir = 1) {
     if (busy || i < 0 || i >= N) return;
@@ -248,8 +189,8 @@
     state.mode = 'msg';
     state.idx = i;
     state.seen = Math.max(state.seen, i);
-    stopAuto();
-    show(scene, tx || SCENES.TRANSITIONS[i % SCENES.TRANSITIONS.length], origin, dir).then((ok) => { if (ok && current === scene) startAuto(scene, i); });
+    nextBtn.classList.remove('nudge');
+    show(scene, tx || SCENES.TRANSITIONS[i % SCENES.TRANSITIONS.length], origin, dir).then((ok) => { if (ok && current === scene) nudgeWhenReady(scene); });
     updateUI();
   }
 
@@ -269,11 +210,11 @@
   function goFinale() {
     if (busy) return;
     state.mode = 'finale';
-    show(SCENES.finale({ data, onChest: () => { state.unlocked = true; store.set(); goChest('iris'); } }), 'fade');
+    show(SCENES.finale({ data, onChest: () => { state.unlocked = true; store.set(); goChest('blur', undefined, true); } }), 'fade');
     updateUI();
   }
 
-  function goChest(tx = 'blur', origin) {
+  function goChest(tx = 'blur', origin, ceremony = false) {
     if (busy) return;
     state.mode = 'chest';
     state.fromChest = true;
@@ -281,6 +222,7 @@
     store.set();
     show(SCENES.chest({
       data,
+      ceremony,
       onOpen: (i, o) => goMsg(i, 'iris', o),
       onFinale: goFinale,
       onRestart: goIntro
@@ -317,7 +259,6 @@
     if (e.key === 'ArrowRight') next();
     else if (e.key === 'ArrowLeft') prev();
     else if (e.key === 'Escape' && state.mode === 'msg' && state.unlocked) goChest('blur');
-    else if ((e.key === ' ' || e.key === 'p') && state.mode === 'msg' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); toggleAuto(); }
   });
 
   /* gesto de deslizar en móvil */

@@ -386,6 +386,192 @@
       { k: OUT, r: PAL.red.base, l: PAL.red.light, y: PAL.gold.base });
   }
 
+  /* ---------- personajes ---------- */
+  const fillPoly = (g, pts, c) => {
+    for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) if (pointInPoly(x + 0.5, y + 0.5, pts)) set(g, x, y, c);
+  };
+  const oval = (w, hh) => mask(w, hh, (u, v) => u * u + v * v <= 1);
+
+  /* ---------------------------------------------------------
+     POCHITA: perrito naranja tipo pomerania con una motosierra
+     en la frente, ojo blanco redondo y cola de cordón con
+     manija. Se arma por partes para varios cuadros: carrera,
+     espera (mueve la cola), ladrido, salto y alegría. La
+     cadena de la sierra avanza entre cuadros.
+     --------------------------------------------------------- */
+  const PO = { base: '#f7923a', light: '#ffbe74', dark: '#cf6420' };
+  function pochitaPose({ legs = 'stand', tail = 'mid', eyes = 'open', mouth = 'smile', chain = 0, ear = 0 } = {}) {
+    const W = 47, H = 30, g = G(W, H);
+    const steel = '#cfd3dc', steelL = '#f1f3f7', steelD = '#8a8f9c', chainC = '#4c505c';
+    // cola: cordon que sale de la espalda y termina en la manija
+    const TAILS = { up: [3, 10, 2, 5], mid: [1, 16, 2, 11], down: [2, 22, 3, 18], wagL: [4, 8, 4, 3], wagR: [0, 14, 1, 9] };
+    const [qx, qy, ex, ey] = TAILS[tail];
+    for (let t = 0; t <= 1; t += 0.02) {
+      const x = (1 - t) * (1 - t) * 7 + 2 * (1 - t) * t * qx + t * t * ex;
+      const y = (1 - t) * (1 - t) * 16 + 2 * (1 - t) * t * qy + t * t * ey;
+      set(g, Math.round(x), Math.round(y), steelD);
+    }
+    rect(g, ex - 1, ey - 1, 4, 3, '#2f323b');
+    set(g, ex, ey, null); set(g, ex + 1, ey, null);
+    // patas: [corrimiento x, largo] para trasera1, trasera2, delantera1, delantera2
+    const LEGS = {
+      stand: [[0, 5], [0, 5], [0, 5], [0, 5]],
+      run0: [[-2, 5], [1, 5], [-1, 5], [2, 5]],
+      run1: [[0, 4], [1, 3], [0, 3], [1, 4]],
+      run2: [[1, 5], [-2, 5], [2, 5], [-1, 5]],
+      run3: [[1, 3], [0, 4], [1, 4], [0, 3]],
+      jump: [[-3, 4], [-2, 4], [2, 4], [3, 4]],
+      sit: [[0, 2], [1, 2], [0, 5], [0, 5]]
+    }[legs];
+    [8, 12, 19, 23].forEach((x0, i) => {
+      const [dx, len] = LEGS[i];
+      rect(g, x0 + dx, 22, 3, len, i < 2 ? PO.dark : PO.base);
+      rect(g, x0 + dx, 21 + len, 3, 1, '#a84d14');
+      set(g, x0 + dx, 22, PO.dark);
+    });
+    // cuerpo de pan
+    paint(g, oval(23, 13), PO, 5, 11, (i, j, c) => (j > 9 && c === PO.base ? '#e98031' : null));
+    // pelito del pecho
+    [[19, 17], [20, 18], [19, 19]].forEach(([x, y]) => set(g, x, y, PO.light));
+    // oreja (detrás de la cabeza)
+    fillPoly(g, ear ? [[21, 9], [21, 3], [27, 7]] : [[22, 8], [24, 2], [27, 7]], PO.dark);
+    // cabeza
+    paint(g, oval(17, 16), PO, 20, 5);
+    // motosierra: carcasa + espada con cadena
+    rect(g, 29, 3, 5, 6, steelD);
+    rect(g, 29, 3, 5, 1, steel);
+    rect(g, 30, 4, 3, 1, '#a9aebb');
+    rect(g, 34, 2, 11, 6, steel);
+    rect(g, 34, 2, 11, 1, steelL);
+    rect(g, 34, 7, 11, 1, steelD);
+    rect(g, 35, 4, 8, 2, '#b3b8c4');
+    set(g, 44, 2, null); set(g, 44, 7, null);
+    for (let x = 34; x < 44; x++) {
+      if ((x + chain) % 2 === 0) set(g, x, 1, chainC);
+      else set(g, x, 8, chainC);
+    }
+    set(g, 45, 4 + (chain % 2), chainC); set(g, 44, 3 + ((chain + 1) % 2) * 3, chainC);
+    // ojo blanco redondo
+    if (eyes === 'open') {
+      rect(g, 26, 9, 6, 6, OUT);
+      rect(g, 27, 10, 4, 4, '#ffffff');
+      [[26, 9], [31, 9], [26, 14], [31, 14]].forEach(([x, y]) => set(g, x, y, PO.base));
+      rect(g, 29, 11, 2, 2, OUT);
+      set(g, 27, 10, '#ffffff');
+    } else if (eyes === 'happy') {
+      [[26, 13], [27, 12], [28, 11], [29, 11], [30, 12], [31, 13]].forEach(([x, y]) => set(g, x, y, OUT));
+    } else {
+      rect(g, 27, 12, 4, 1, OUT);
+    }
+    // nariz y boca
+    set(g, 36, 11, OUT); set(g, 36, 12, OUT);
+    if (mouth === 'smile') {
+      line(g, 31, 16, 33, 17, OUT); line(g, 34, 17, 35, 15, OUT);
+      rect(g, 33, 18, 2, 1, '#ff6f91');
+    } else if (mouth === 'open') {
+      rect(g, 31, 15, 6, 1, OUT);
+      rect(g, 31, 16, 6, 3, '#6b1d2a');
+      [31, 33, 35].forEach((x) => set(g, x, 16, '#ffffff'));
+      rect(g, 32, 18, 3, 1, '#ff6f91');
+      rect(g, 31, 19, 6, 1, OUT);
+    } else if (mouth === 'tongue') {
+      line(g, 31, 16, 33, 17, OUT); line(g, 34, 17, 35, 15, OUT);
+      rect(g, 33, 18, 2, 2, '#ff6f91'); set(g, 34, 20, '#e8507a');
+    }
+    // cachete
+    set(g, 25, 15, '#ff9b9b'); set(g, 26, 15, '#ff9b9b');
+    return outline(g);
+  }
+  const POCHI_FRAMES = {
+    'pochi-run0': { legs: 'run0', tail: 'up', mouth: 'tongue', chain: 0, ear: 1 },
+    'pochi-run1': { legs: 'run1', tail: 'mid', mouth: 'tongue', chain: 1 },
+    'pochi-run2': { legs: 'run2', tail: 'up', mouth: 'tongue', chain: 0, ear: 1 },
+    'pochi-run3': { legs: 'run3', tail: 'mid', mouth: 'tongue', chain: 1 },
+    'pochi-idle0': { legs: 'stand', tail: 'wagL', chain: 0 },
+    'pochi-idle1': { legs: 'stand', tail: 'wagR', chain: 1 },
+    'pochi-blink': { legs: 'stand', tail: 'wagR', eyes: 'closed', chain: 1 },
+    'pochi-bark': { legs: 'stand', tail: 'up', mouth: 'open', chain: 1, ear: 1 },
+    'pochi-jump': { legs: 'jump', tail: 'up', mouth: 'open', chain: 0, ear: 1 },
+    'pochi-happy0': { legs: 'sit', tail: 'wagL', eyes: 'happy', mouth: 'tongue', chain: 0 },
+    'pochi-happy1': { legs: 'sit', tail: 'wagR', eyes: 'happy', mouth: 'open', chain: 1, ear: 1 }
+  };
+
+  /* ---------------------------------------------------------
+     MEW: gatito psíquico rosa. Se arma por partes para poder
+     sacar varios cuadros de animación (cola, brazos, pies, cara)
+     --------------------------------------------------------- */
+  const MEW_P = { base: '#ffb3d1', light: '#ffdcea', dark: '#e87fae' };
+  function mewPose({ tail = [26, 19, 21, 6], arms = 'down', feet = 'dangle', eyes = 'open', mouth = 'smile', ears = 0 } = {}) {
+    const W = 28, H = 27, g = G(W, H), P = MEW_P;
+    // cola (detrás): curva desde la espalda con punta ovalada
+    const [cx, cy, ex, ey] = tail;
+    for (let t = 0; t <= 1; t += 0.01) {
+      const x = (1 - t) * (1 - t) * 14 + 2 * (1 - t) * t * cx + t * t * ex;
+      const y = (1 - t) * (1 - t) * 19 + 2 * (1 - t) * t * cy + t * t * ey;
+      set(g, Math.round(x), Math.round(y), P.dark);
+      if (t < 0.35) set(g, Math.round(x), Math.round(y) - 1, P.base);
+    }
+    paint(g, oval(5, 7), P, ex - 2, ey - 6);
+    // pies
+    const foot = (x, y) => paint(g, oval(5, 3), P, x, y);
+    if (feet === 'dangle') { foot(6, 21); foot(12, 21); }
+    else if (feet === 'tucked') { foot(6, 19); foot(12, 20); }
+    else if (feet === 'kick') { foot(4, 20); foot(12, 22); }
+    else if (feet === 'swing') { foot(7, 22); foot(13, 20); }
+    // cuerpo
+    paint(g, oval(8, 9), P, 7, 13);
+    // brazos
+    const arm = (pts) => pts.forEach(([x, y]) => set(g, x, y, P.base));
+    if (arms === 'down') arm([[6, 15], [5, 16], [15, 15], [16, 16]]);
+    else if (arms === 'up') arm([[6, 13], [5, 12], [4, 11], [15, 13], [16, 12], [17, 11]]);
+    else if (arms === 'forward') arm([[6, 15], [5, 15], [15, 15], [16, 15], [17, 14]]);
+    else if (arms === 'back') arm([[6, 15], [5, 14], [15, 15], [16, 14], [17, 13]]);
+    else if (arms === 'belly') { set(g, 8, 16, P.dark); set(g, 9, 17, P.dark); set(g, 14, 16, P.dark); set(g, 13, 17, P.dark); }
+    // orejas (se mueven un poquito) y cabeza
+    fillPoly(g, [[5, 6], [6 - ears, 1], [10, 4]], P.base);
+    fillPoly(g, [[13, 4], [17 + ears, 1], [18, 6]], P.base);
+    set(g, 7, 3, P.dark); set(g, 16, 3, P.dark);
+    paint(g, oval(15, 11), P, 4, 3);
+    // ojos
+    const eyeOpen = (x) => { rect(g, x, 7, 2, 3, '#3d6df2'); set(g, x, 7, '#ffffff'); rect(g, x, 9, 2, 1, '#2a3fa8'); };
+    const eyeHappy = (x) => { set(g, x - 1, 9, OUT); set(g, x, 8, OUT); set(g, x + 1, 8, OUT); set(g, x + 2, 9, OUT); };
+    const eyeBlink = (x) => rect(g, x, 9, 2, 1, OUT);
+    const E2 = { open: [eyeOpen, eyeOpen], happy: [eyeHappy, eyeHappy], blink: [eyeBlink, eyeBlink], wink: [eyeOpen, eyeHappy] }[eyes];
+    E2[0](7); E2[1](14);
+    // boca
+    if (mouth === 'smile') { set(g, 10, 11, P.dark); set(g, 11, 12, P.dark); set(g, 12, 11, P.dark); }
+    else if (mouth === 'open') { rect(g, 10, 11, 3, 1, OUT); rect(g, 10, 12, 3, 1, '#d6406f'); set(g, 11, 13, OUT); }
+    else if (mouth === 'grin') { rect(g, 9, 11, 5, 1, OUT); rect(g, 10, 12, 3, 1, '#d6406f'); }
+    set(g, 6, 10, '#ff86b0'); set(g, 17, 10, '#ff86b0');
+    return outline(g);
+  }
+  /* cuadros: vuelo (cola ondulando, brazos y pies nadando), parpadeo, risa y voltereta */
+  const MEW_FRAMES = {
+    'mew-f0': { tail: [26, 19, 21, 7], arms: 'down', feet: 'dangle' },
+    'mew-f1': { tail: [27, 16, 24, 9], arms: 'forward', feet: 'swing', ears: 1 },
+    'mew-f2': { tail: [25, 22, 25, 13], arms: 'back', feet: 'kick' },
+    'mew-f3': { tail: [24, 20, 20, 6], arms: 'forward', feet: 'tucked', ears: 1 },
+    'mew-blink': { tail: [26, 19, 21, 7], arms: 'down', feet: 'dangle', eyes: 'blink' },
+    'mew-wink': { tail: [27, 16, 24, 9], arms: 'up', feet: 'swing', eyes: 'wink', mouth: 'grin' },
+    'mew-laugh0': { tail: [27, 15, 24, 7], arms: 'up', feet: 'kick', eyes: 'happy', mouth: 'open', ears: 1 },
+    'mew-laugh1': { tail: [25, 22, 24, 12], arms: 'belly', feet: 'tucked', eyes: 'happy', mouth: 'grin' },
+    'mew-curl': { tail: [22, 24, 18, 22], arms: 'belly', feet: 'tucked', eyes: 'happy', mouth: 'smile' }
+  };
+
+  function crab(step = 0) {
+    return rows([
+      'rr.k...k.rr',
+      'r.rk...kr.r',
+      '.rrrrrrrrr.',
+      'rrrlrrrrrrr',
+      '.rrrrrrrrr.',
+      step ? '.r.r...r.r.' : 'r.r.....r.r'
+    ], { r: PAL.coral.base, l: PAL.coral.light, k: OUT });
+  }
+  function paw() {
+    return fromRows(['.p.p.', 'p...p', '.ppp.', '.ppp.'], { p: '#d68a5a' });
+  }
+
   function giftBody() {
     const W = 34, H = 22, g = G(W + 2, H + 2);
     const m = G(W, H); rect(m, 0, 0, W, H, 1);
@@ -590,6 +776,7 @@
     'envelope-pink': () => envelope('pink', 'blush'),
     'fish-orange': () => fish('orange'), 'fish-pink': () => fish('pink'), 'fish-teal': () => fish('teal'), 'fish-gold': () => fish('gold'),
     bottle, seaweed, snowflake, pineTree, snowman, rocket, flame, ladybug, lantern,
+    paw, crab: () => crab(0), 'crab-step': () => crab(1),
     planet: () => planet('peach'), 'planet-teal': () => planet('teal', '#e0d4ff'),
     'note-pink': () => note('pink'), 'note-gold': () => note('gold'), 'note-lilac': () => note('lilac'), 'note-mint': () => note('mint'),
     giftBody, giftLid, bow,
@@ -598,8 +785,14 @@
     'heart-s-empty': heartEmpty
   };
 
+  /* cuadros de animacion de Mew y Pochita */
+  Object.entries(MEW_FRAMES).forEach(([k, o]) => (builders[k] = () => mewPose(o)));
+  builders.mew = builders['mew-f0'];
+  Object.entries(POCHI_FRAMES).forEach(([k, o]) => (builders[k] = () => pochitaPose(o)));
+  builders.pochita = builders['pochi-idle0'];
+
   /* sobres cerrados y abiertos para cada color de sello */
-  ['rose', 'lilac', 'mint', 'gold', 'plum', 'sky', 'peach', 'pink', 'teal', 'red', 'ice', 'indigo', 'coral', 'leaf', 'berry'].forEach((c) => {
+  ['rose', 'lilac', 'mint', 'gold', 'plum', 'sky', 'peach', 'pink', 'teal', 'red', 'ice', 'indigo', 'coral', 'leaf', 'berry', 'orange', 'blush'].forEach((c) => {
     const paper = c === 'pink' ? 'blush' : 'cream';
     if (!builders['envelope-' + c]) builders['envelope-' + c] = () => envelope(c, paper);
     builders['open-' + c] = () => envelopeOpen(c, paper);

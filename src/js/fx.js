@@ -83,6 +83,8 @@
     const el = h('section', `scene msg ${theme}`);
     el.dataset.tint = tint;
     el.setAttribute('role', 'region');
+    const extra = window.SCENE_EXTRAS && window.SCENE_EXTRAS[theme];
+    if (extra) { try { extra(el); } catch (e) { console.error(e); } }
     return el;
   }
   /* repite fn cada [min, max] ms (con un primer retraso); devuelve stop() */

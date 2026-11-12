@@ -2,7 +2,7 @@
 
 Sitio estático (HTML + CSS + JS, sin dependencias ni build) con mensajes de ánimo para Milagros.
 
-**Recorrido:** caja de regalo (se abre sola si nadie la toca) → una carta por persona, cada una con su propio estilo y transición, avanzando sola según el largo del mensaje → desfile de nombres y remolino final que forma un mensaje → cofre abierto para volver a leer cualquier carta.
+**Recorrido:** caja de regalo (se abre sola si nadie la toca) → una carta por persona, cada una con su propio estilo y transición → desfile de nombres y remolino final → cae un cofre con todas las cartas, que se abre para volver a leer cualquiera.
 
 ## Editar los mensajes (lo único que tienes que tocar)
 
@@ -22,7 +22,9 @@ Abre [`mensajes.js`](mensajes.js) y agrega un bloque por persona:
 
 - El orden de la lista es el orden de las cartas.
 - Al final del archivo, en `AJUSTES`, puedes cambiar el nombre de la portada y el mensaje que forma el remolino final.
-- Hay 15 estilos de carta, uno distinto para cada mensaje (hasta 15): carta, noche estrellada, jardín, videojuego, scrapbook, lluvia → arcoíris, atardecer, sakura, océano, cine, nieve, espacio, globos, luciérnagas y música. Si hubiera más de 15, se repiten en orden.
+- Hay 15 estilos de carta, uno distinto para cada mensaje (hasta 15), en este orden: carta, noche, jardin, videojuego, scrapbook, lluvia, mew, pochita, oceano, cine, nieve, sakura, globos, luciernagas y musica. La tabla completa está al inicio de `mensajes.js`.
+- Para elegir el estilo de un mensaje a mano, agrégale `estilo: 'pochita'` (o cualquier otro nombre de la tabla). Los demás se reparten solos sin repetirse.
+- Al terminar el remolino cae un cofre donde entran todas las cartas; al tocarlo se abre y se puede elegir qué carta volver a leer.
 
 ## Estructura
 
@@ -34,8 +36,10 @@ src/
   js/pixel.js    pixel art generado por código
   js/fx.js       animaciones, transiciones y efectos
   js/scenes.js   portada, estilos 1–8, final y cofre
-  js/themes-extra.js  estilos 9–15
+  js/themes-extra.js  estilos 9–15 (incluye Mew y Pochita)
+  js/extras.js   detalles animados extra de cada escena
   css/themes-extra.css
+  css/extras.css
   js/app.js      navegación
 ```
 
@@ -68,7 +72,7 @@ git push -u origin main
 
 ## Controles
 
-- Las cartas avanzan solas: la barra del botón "Siguiente" muestra cuánto falta. El botón de arriba a la derecha (o la barra espaciadora) pausa y reanuda. Si la persona toca la pantalla o hace scroll, la cuenta espera unos segundos.
-- También se puede avanzar con los botones de abajo, tocando un sobre del tendedero, con las flechas del teclado o deslizando el dedo en el móvil.
+- Quien lee decide cuándo pasar a la siguiente carta. Cuando una carta termina de aparecer, el botón "Siguiente" late suavemente para indicarlo.
+- Se puede avanzar con los botones de abajo, tocando un sobre del tendedero, con las flechas del teclado o deslizando el dedo en el móvil.
 - `Esc` vuelve al cofre (una vez desbloqueado).
 - El navegador recuerda que el cofre ya fue abierto y muestra un atajo en la portada.

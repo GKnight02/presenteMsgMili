@@ -607,13 +607,417 @@
     };
   }
 
-  window.THEMES_EXTRA = [
-    { fn: mar, seal: 'teal' },
-    { fn: cine, seal: 'red' },
-    { fn: nieve, seal: 'ice' },
-    { fn: espacio, seal: 'indigo' },
-    { fn: globos, seal: 'coral' },
-    { fn: bosque, seal: 'leaf' },
-    { fn: musica, seal: 'berry' }
-  ];
+  /* ---------------------------------------------------------
+     POCHITA — patio soleado: el perrito llega corriendo con la
+     carta en la boca, la suelta, salta encima de la tarjeta y
+     se queda jugando (salta, ladra, camina, mueve la colita)
+     --------------------------------------------------------- */
+  function pochita({ msg }) {
+    const el = sceneBase('th-perro', '#bfe8ff');
+    const st = stopper();
+    /* playa: sol con rayos, nubes, gaviotas, mar con olas y velero,
+       palmeras, sombrilla, castillo de arena, cangrejo y pelota */
+    const sun = depth(h('div', 'b-sun'), 10);
+    sun.append(h('i', 'rays'), PX.img('sun', small() ? 5 : 7));
+    el.appendChild(sun);
+    for (let i = 0; i < 4; i++) {
+      const sc = pick([3, 4, 5]);
+      const holder = depth(h('div', 'cloud-holder'), sc * 3);
+      const c = PX.img('cloud', sc, 'drift');
+      holder.style.top = rand(3, 30) + '%';
+      c.style.setProperty('--d', (90 - sc * 8 + rand(-10, 10)).toFixed(0) + 's');
+      c.style.setProperty('--dl', (-rand(0, 80)).toFixed(0) + 's');
+      holder.appendChild(c);
+      el.appendChild(holder);
+    }
+    const birdSvg = '<svg viewBox="0 0 9 4" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM4 2h1v1H4zM5 1h1v1H5zM6 0h1v1H6zM7 0h1v1H7z" transform="translate(0.5 0)"/></svg>';
+    for (let i = 0; i < 4; i++) {
+      const b = h('span', 'bird gull', birdSvg);
+      b.style.top = rand(8, 34) + '%';
+      b.style.setProperty('--d', rand(16, 28).toFixed(1) + 's');
+      b.style.setProperty('--dl', (-rand(0, 20)).toFixed(1) + 's');
+      b.style.setProperty('--s', rand(0.7, 1.2).toFixed(2));
+      el.appendChild(b);
+    }
+    const sea = depth(h('div', 'b-sea', '<i class="w w1"></i><i class="w w2"></i><i class="w w3"></i>'), 5);
+    for (let i = 0; i < 16; i++) {
+      const g = h('i', 'glint');
+      g.style.left = rand(2, 96) + '%';
+      g.style.top = rand(8, 80) + '%';
+      g.style.width = rand(10, 34).toFixed(0) + 'px';
+      g.style.setProperty('--dl', (-rand(0, 3)).toFixed(2) + 's');
+      sea.appendChild(g);
+    }
+    sea.appendChild(h('div', 'boat', '<i class="sail"></i><i class="sail2"></i><i class="hull"></i>'));
+    el.appendChild(sea);
+    const sand = h('div', 'b-sand', '<i class="foam"></i><i class="wet"></i>');
+    for (let i = 0; i < 7; i++) {
+      const sh = PX.img(pick(['star', 'star-pink', 'heart-s', 'flower-peach']), 2, 'b-shell');
+      sh.style.left = rand(3, 95) + '%';
+      sh.style.bottom = rand(8, 60) + '%';
+      sh.style.rotate = rand(-30, 30) + 'deg';
+      sand.appendChild(sh);
+    }
+    const palms = ['l', 'r'].map((side) => {
+      const p = h('div', 'palm ' + side, '<i class="trunk"></i><i class="fronds"><i></i><i></i><i></i><i></i><i></i><i></i></i><i class="coco"></i>');
+      sand.appendChild(p);
+      return p;
+    });
+    sand.appendChild(h('div', 'umbrella', '<i class="top"></i><i class="pole"></i><i class="towel"></i>'));
+    const house = h('div', 'castle', '<i class="t1"></i><i class="t2"></i><i class="t3"></i><i class="gate"></i><b class="flag"></b>');
+    sand.appendChild(house);
+    const crabEl = h('span', 'crab');
+    const crabImg = PX.img('crab', small() ? 3 : 4);
+    crabEl.appendChild(crabImg);
+    sand.appendChild(crabEl);
+    let crabStep = 0;
+    const crabT = setInterval(() => { crabStep ^= 1; crabImg.src = PX.url(crabStep ? 'crab-step' : 'crab'); }, 180);
+    st(() => clearInterval(crabT));
+    const ball = h('span', 'ball bball');
+    sand.appendChild(ball);
+    el.appendChild(sand);
+    const bf = h('span', 'bfly b1');
+    bf.appendChild(PX.img('butterfly-pink', 3));
+    el.appendChild(bf);
+
+    const wrap = h('div', 'perro-wrap tilt');
+    const card = h('article', 'perro-card scroll');
+    card.innerHTML = '<p class="eyebrow">te traje algo</p><div class="pc-body"></div><p class="sign"></p>';
+    const { frag, words } = wordParagraphs(msg.mensaje);
+    card.querySelector('.pc-body').appendChild(frag);
+    card.querySelector('.sign').textContent = '— ' + msg.de;
+    const paws = ['pw1', 'pw2', 'pw3'].map((c) => { const p = PX.img('paw', 4, 'pawprint ' + c); card.appendChild(p); return p; });
+    wrap.appendChild(card);
+    el.appendChild(wrap);
+
+    const SC = small() ? 3 : 4;
+    const pup = h('div', 'pup');
+    const pimg = PX.img('pochi-idle0', SC, 'pup-img');
+    const env = PX.img('envelope', 2, 'pup-env');
+    pup.append(pimg, env);
+    el.appendChild(pup);
+    const PW = 47 * SC, PH = 30 * SC;
+    let px = -PW - 40, py = 0, facing = 1;
+
+    /* cuadros segun lo que esta haciendo */
+    let state = 'idle', stateUntil = 0, tick = 0, cur = '';
+    const SEQ = {
+      run: ['pochi-run0', 'pochi-run1', 'pochi-run2', 'pochi-run3'],
+      idle: ['pochi-idle0', 'pochi-idle1'],
+      happy: ['pochi-happy0', 'pochi-happy1'],
+      bark: ['pochi-bark'],
+      jump: ['pochi-jump']
+    };
+    const setState = (s, ms = 0) => { state = s; stateUntil = ms ? performance.now() + ms : 0; tick = 0; };
+    const animT = setInterval(() => {
+      if (stateUntil && performance.now() > stateUntil) setState('idle');
+      const seq = SEQ[state];
+      let n = seq[tick % seq.length];
+      if (state === 'idle') {
+        n = seq[Math.floor(tick / 4) % 2];
+        if (tick % 37 === 36) n = 'pochi-blink';
+      }
+      tick++;
+      if (n !== cur) { cur = n; pimg.src = PX.url(n); }
+      pimg.style.translate = state === 'run' && tick % 2 ? `0 ${-SC}px` : '0 0';
+    }, 95);
+    st(() => clearInterval(animT));
+
+    const place = () => {
+      pup.style.transform = `translate(${px}px, ${py}px)`;
+      pup.classList.toggle('left', facing < 0);
+    };
+    const moveTo = async (x, y, dur, arc = 0) => {
+      facing = x < px ? -1 : x > px ? 1 : facing;
+      pup.classList.toggle('left', facing < 0);
+      const from = `translate(${px}px, ${py}px)`, to = `translate(${x}px, ${y}px)`;
+      const kf = arc
+        ? [{ transform: from, easing: 'ease-out' }, { transform: `translate(${(px + x) / 2}px, ${Math.min(py, y) - arc}px)`, easing: 'ease-in' }, { transform: to }]
+        : [{ transform: from }, { transform: to }];
+      const a = await anim(pup, kf, { duration: dur, easing: arc ? 'linear' : 'ease-in-out' });
+      px = x; py = y;
+      place();
+      a.cancel();
+    };
+    const bark = (txt) => {
+      setState('bark', 480);
+      const r = pup.getBoundingClientRect();
+      floatText(el, r.left + r.width * (facing > 0 ? 0.8 : 0.2), r.top, txt || pick(['¡guau!', '¡guau guau!', '♥', '¡te quiero!']));
+    };
+    const dust = () => {
+      const r = pup.getBoundingClientRect();
+      burst(el, r.left + r.width * (facing > 0 ? 0.2 : 0.8), r.bottom - 4, { names: ['sparkle-s'], n: 2, spread: 24, scale: 2, up: 0 });
+    };
+    const onCard = () => {
+      const b = el.getBoundingClientRect(), c = card.getBoundingClientRect();
+      return { minX: c.left - b.left - PW * 0.15, maxX: c.right - b.left - PW * 0.85, y: Math.max(c.top - b.top - PH + 6, 6) };
+    };
+    let busyPup = false;
+    const action = async () => {
+      if (busyPup) return;
+      busyPup = true;
+      const o = onCard();
+      const r = Math.random();
+      if (r < 0.3) {
+        setState('jump');
+        await anim(pup, [{ transform: `translate(${px}px, ${py}px)` }, { transform: `translate(${px}px, ${py - 46}px)`, easing: 'ease-in' }, { transform: `translate(${px}px, ${py}px)` }], { duration: 560, easing: 'ease-out', fill: 'none' });
+        dust();
+        bark();
+      } else if (r < 0.65) {
+        const nx = clamp(rand(o.minX, o.maxX), o.minX, o.maxX);
+        setState('run');
+        const dustT = setInterval(dust, 260);
+        await moveTo(nx, o.y, clamp(Math.abs(nx - px) * 4, 500, 1800));
+        clearInterval(dustT);
+        setState('idle');
+      } else if (r < 0.85) {
+        setState('happy', 1500);
+        bark(pick(['♥', '¡guau!']));
+        setState('happy', 1500);
+        const pr = pup.getBoundingClientRect();
+        burst(el, pr.left + pr.width / 2, pr.top + 10, { names: ['heart-s', 'heart-s-rose'], n: 5, spread: 50, scale: 3, up: 40 });
+        await wait(1500);
+      } else {
+        facing = -facing;
+        place();
+        await wait(500);
+        bark();
+      }
+      busyPup = false;
+    };
+
+    return {
+      el,
+      async enter() {
+        const eb = card.querySelector('.eyebrow'), sign = card.querySelector('.sign');
+        hide(card, words, eb, sign, paws, sun, house);
+        anim(sun, [{ opacity: 0, transform: 'translateY(40px) rotate(-60deg)' }, { opacity: 1, transform: 'none' }], { duration: 1500, easing: E.out });
+        anim(house, [{ opacity: 0, transform: 'translateY(30px)' }, { opacity: 1, transform: 'none' }], { duration: 900, delay: 300, easing: E.back });
+        const W = el.clientWidth, Hh = el.clientHeight;
+        const ground = Hh - (small() ? 150 : 128) - PH;
+        py = ground; px = -PW - 40; place();
+        setState('run');
+        const dustT = setInterval(dust, 240);
+        await moveTo(W / 2 - PW / 2, ground, 2000);
+        clearInterval(dustT);
+        setState('idle');
+        await wait(200);
+        bark('¡guau!');
+        const er = env.getBoundingClientRect(), cr = card.getBoundingClientRect();
+        const dx = cr.left + cr.width / 2 - (er.left + er.width / 2), dy = cr.top + cr.height / 2 - (er.top + er.height / 2);
+        await anim(env, [
+          { transform: 'none', opacity: 1 },
+          { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 60}px) rotate(-20deg) scale(2)`, opacity: 1 },
+          { transform: `translate(${dx}px, ${dy}px) rotate(0deg) scale(3.4)`, opacity: 0 }
+        ], { duration: 900, easing: E.inOut });
+        env.style.visibility = 'hidden';
+        burst(el, cr.left + cr.width / 2, cr.top + cr.height / 2, { names: ['heart-s', 'heart-s-rose', 'sparkle', 'paw'], n: 16, spread: 150, scale: 3 });
+        await anim(card, [{ opacity: 0, transform: 'scale(0.3) rotate(-6deg)' }, { opacity: 1, transform: 'scale(1.03)', offset: 0.7 }, { opacity: 1, transform: 'none' }], { duration: 750, easing: E.out });
+        paws.forEach((p, i) => anim(p, [{ opacity: 0, transform: 'scale(1.8)' }, { opacity: 0.55, transform: 'scale(1)' }], { duration: 350, delay: 200 + i * 220, easing: E.in }));
+        const o = onCard();
+        setState('jump');
+        moveTo(clamp(o.maxX - 10, o.minX, o.maxX), o.y, 900, 120).then(() => { dust(); setState('happy', 1400); bark('♥'); setState('happy', 1400); });
+        fadeUp([eb], { y: 6 });
+        await revealWords(words, { total: 2100, duration: 600, easing: E.back, from: { opacity: 0, transform: 'translateY(10px) scale(0.8)' } });
+        await fadeUp([sign], { y: 6 });
+        st(every(action, 2400, 4200, 1200));
+        st(every(() => { ball.classList.remove('roll'); void ball.offsetWidth; ball.classList.add('roll'); }, 6000, 9000, 3000));
+      },
+      destroy() { st.stop(); }
+    };
+  }
+
+  /* ---------------------------------------------------------
+     MEW — cielo de ensueño con burbujas; llega dentro de una
+     burbuja psíquica, revela el mensaje y vuela alrededor de
+     la carta riéndose, girando y dejando destellos
+     --------------------------------------------------------- */
+  function mewTheme({ msg }) {
+    const el = sceneBase('th-mew', '#1a1036');
+    const st = stopper();
+    /* espacio: estrellas en capas que titilan, nebulosas, galaxia en espiral,
+       un planeta grande que gira con su luna, asteroides y cometas */
+    const sky = Array.from({ length: small() ? 150 : 280 }, () => ({
+      x: Math.random(), y: Math.random(), z: pick([1, 1, 1, 2, 2, 3]), ph: rand(0, 6.28), sp: rand(0.5, 2.2),
+      c: pick(['#ffffff', '#ffe9f3', '#e0d4ff', '#cfe9ff', '#fff2b8'])
+    }));
+    const sf = canvasLayer(el, (ctx, w, hh, dt, t) => {
+      sky.forEach((q) => {
+        q.x -= dt * 0.005 * q.z;
+        if (q.x < 0) q.x += 1;
+        const x = Math.round(q.x * w + FX.pointer.x * q.z * 8), y = Math.round(q.y * hh + FX.pointer.y * q.z * 5);
+        const a = 0.3 + 0.7 * Math.abs(Math.sin((t / 1000) * q.sp + q.ph));
+        ctx.globalAlpha = a;
+        ctx.fillStyle = q.c;
+        ctx.fillRect(x, y, q.z, q.z);
+        if (q.z === 3 && a > 0.85) {
+          ctx.globalAlpha = (a - 0.85) * 5;
+          ctx.fillRect(x - 3, y + 1, 9, 1);
+          ctx.fillRect(x + 1, y - 3, 1, 9);
+        }
+      });
+      ctx.globalAlpha = 1;
+    }, 'layer m-stars');
+    st(() => sf.stop());
+    el.appendChild(depth(h('div', 'm-nebula', '<i></i><i></i><i></i>'), 4));
+    el.appendChild(depth(h('div', 'm-galaxy', '<i></i><i></i>'), 7));
+    const planetBig = depth(h('div', 'm-planet', '<i class="mpl-ring back"></i><i class="mpl-body"><i class="mpl-surface"></i></i><i class="mpl-ring front"></i><i class="mpl-orbit"></i>'), 12);
+    planetBig.querySelector('.mpl-orbit').appendChild(PX.img('moon', small() ? 2 : 3, 'mpl-moon'));
+    el.appendChild(planetBig);
+    el.appendChild(depth(PX.img('planet', small() ? 3 : 4, 'm-pl p1'), 18));
+    el.appendChild(depth(PX.img('planet-teal', small() ? 2 : 3, 'm-pl p2'), 24));
+    for (let i = 0; i < (small() ? 5 : 9); i++) {
+      const r = h('span', 'm-rock');
+      r.style.top = rand(5, 90) + '%';
+      const sz = rand(6, 18);
+      r.style.width = sz + 'px';
+      r.style.height = sz * rand(0.7, 1) + 'px';
+      r.style.setProperty('--d', rand(22, 48).toFixed(1) + 's');
+      r.style.setProperty('--dl', (-rand(0, 48)).toFixed(1) + 's');
+      r.style.setProperty('--rd', rand(4, 12).toFixed(1) + 's');
+      el.appendChild(r);
+    }
+    st(shootingStars(el, [1600, 3600]));
+    depth(floaters(el, small() ? 5 : 8, ['sparkle-pink', 'sparkle-s', 'heart-s']), 12);
+
+    const wrap = h('div', 'mew-wrap tilt');
+    const card = h('article', 'mew-card scroll');
+    card.innerHTML = '<p class="eyebrow">alguien vino a saludarte</p><div class="mc-body"></div><p class="sign"></p>';
+    const { frag, words } = wordParagraphs(msg.mensaje);
+    card.querySelector('.mc-body').appendChild(frag);
+    card.querySelector('.sign').textContent = '— ' + msg.de;
+    wrap.appendChild(card);
+    el.appendChild(wrap);
+
+    const SC = small() ? 4 : 5;
+    const mew = h('div', 'mew');
+    const inner = h('div', 'mew-inner');
+    const mimg = PX.img('mew-f0', SC, 'mew-img');
+    inner.appendChild(mimg);
+    let curFrame = 'mew-f0';
+    const setFrame = (n) => { if (n !== curFrame) { curFrame = n; mimg.src = PX.url(n); } };
+    const psy = h('i', 'psy');
+    mew.append(psy, inner);
+    el.appendChild(mew);
+    const MW = 28 * SC, MH = 27 * SC;
+
+    let mode = 'wait', x = -200, y = -200, a = -Math.PI / 2, holdX = 0, holdY = 0, lx = x, ly = y;
+    let spinning = false, blinkUntil = 0, nextBlink = 0, winkUntil = 0;
+    const trail = [];
+    const layer = canvasLayer(el, (ctx, w, hh, dt, t) => {
+      if (mode !== 'wait') {
+        const b = el.getBoundingClientRect(), c = card.getBoundingClientRect();
+        const cx = c.left - b.left + c.width / 2, cy = c.top - b.top + c.height / 2;
+        let tx, ty;
+        if (mode === 'orbit') {
+          a += dt * 0.75;
+          const rx = Math.min(c.width / 2 + MW * 0.35, w / 2 - MW * 0.35);
+          const ry = Math.min(c.height / 2 + MH * 0.3, hh / 2 - MH * 0.45);
+          tx = cx + Math.cos(a) * rx;
+          ty = cy + Math.sin(a) * ry + Math.sin(a * 2) * 18;
+        } else { tx = holdX; ty = holdY; }
+        const k = Math.min(1, dt * (mode === 'orbit' ? 3.2 : 5));
+        x += (tx - x) * k;
+        y += (ty - y) * k;
+        const vx = (x - lx) / Math.max(dt, 0.001), vy = (y - ly) / Math.max(dt, 0.001);
+        lx = x; ly = y;
+        const bob = Math.sin(t / 320) * 6;
+        if (Math.abs(vx) > 8) mew.classList.toggle('left', vx < 0);
+        /* cuadro de animacion segun lo que esta haciendo */
+        if (!nextBlink) nextBlink = t + 2500;
+        if (t > nextBlink) { blinkUntil = t + 140; nextBlink = t + rand(2200, 4200); }
+        const speed = Math.hypot(vx, vy);
+        if (spinning) setFrame('mew-curl');
+        else if (mew.classList.contains('laughing')) setFrame(Math.floor(t / 150) % 2 ? 'mew-laugh1' : 'mew-laugh0');
+        else if (t < winkUntil) setFrame('mew-wink');
+        else if (t < blinkUntil) setFrame('mew-blink');
+        else setFrame('mew-f' + (Math.floor(t / (speed > 90 ? 95 : 150)) % 4));
+        /* se estira al subir y se aplasta al bajar */
+        const sq = clamp(-vy * 0.0012, -0.1, 0.1);
+        mew.style.transform = `translate(${x - MW / 2}px, ${y - MH / 2 + bob}px) rotate(${clamp(vx * 0.04, -16, 16)}deg) scale(${1 - sq * 0.6}, ${1 + sq})`;
+        if (Math.random() < 0.6) trail.push({ x: x + rand(-14, 14), y: y + rand(0, 24) + bob, life: 0.9, c: pick(['#ffc2d8', '#ffffff', '#e0d4ff', '#ffe9a6']), s: pick([2, 3, 4]) });
+      }
+      for (let i = trail.length - 1; i >= 0; i--) {
+        const q = trail[i];
+        q.life -= dt;
+        q.y += 12 * dt;
+        if (q.life <= 0) { trail.splice(i, 1); continue; }
+        ctx.globalAlpha = q.life / 0.9;
+        ctx.fillStyle = q.c;
+        ctx.fillRect(Math.round(q.x), Math.round(q.y), q.s, q.s);
+      }
+      ctx.globalAlpha = 1;
+    }, 'layer mew-trail');
+
+    const laugh = async () => {
+      if (mode !== 'orbit') return;
+      mode = 'hold'; holdX = x; holdY = y;
+      mew.classList.add('laughing');
+      floatText(el, x, y - MH / 2, pick(['jijiji ♥', '¡mew!', 'jeje', '¡mew mew!', 'jiji ✦']));
+      burst(el, el.getBoundingClientRect().left + x, el.getBoundingClientRect().top + y, { names: ['heart-s', 'heart-s-rose', 'sparkle-pink'], n: 7, spread: 70, scale: 3, up: 30 });
+      await wait(1700);
+      mew.classList.remove('laughing');
+      mode = 'orbit';
+    };
+    const spin = () => {
+      if (mode !== 'orbit') return;
+      spinning = true;
+      anim(inner, [{ transform: 'rotate(0) scale(1)' }, { transform: 'rotate(180deg) scale(1.15)' }, { transform: 'rotate(360deg) scale(1)' }], { duration: 750, easing: 'ease-in-out', fill: 'none' }).then(() => { spinning = false; });
+      a += 0.6;
+    };
+    const tickle = () => {
+      if (mode !== 'orbit') return;
+      anim(card, [{ transform: 'none' }, { transform: 'rotate(-1.5deg)' }, { transform: 'rotate(1.5deg)' }, { transform: 'rotate(-1deg)' }, { transform: 'none' }], { duration: 500, easing: 'ease-in-out', fill: 'none' });
+      winkUntil = performance.now() + 1200;
+      floatText(el, x, y - MH / 2, pick(['¡cosquillas!', 'jiji']));
+    };
+
+    return {
+      el,
+      async enter() {
+        const eb = card.querySelector('.eyebrow'), sign = card.querySelector('.sign');
+        hide(card, words, eb, sign);
+        const W = el.clientWidth, Hh = el.clientHeight;
+        x = -MW; y = Hh * 0.25; lx = x;
+        holdX = W / 2; holdY = Hh * 0.45;
+        mode = 'hold';
+        mew.classList.add('bubbled');
+        await wait(1700);
+        mew.classList.remove('bubbled');
+        const b = el.getBoundingClientRect();
+        burst(el, b.left + x, b.top + y, { names: ['sparkle', 'sparkle-pink', 'sparkle-s', 'heart-s'], n: 18, spread: 130, scale: 3, up: 0 });
+        mew.classList.add('laughing');
+        floatText(el, x, y - MH / 2, '¡mew!');
+        await wait(900);
+        mew.classList.remove('laughing');
+        mode = 'orbit';
+        a = -Math.PI / 2;
+        await anim(card, [
+          { opacity: 0, transform: 'scale(0.4)', filter: 'blur(12px) hue-rotate(60deg)' },
+          { opacity: 1, transform: 'scale(1.04)', filter: 'blur(0) hue-rotate(0deg)', offset: 0.7 },
+          { opacity: 1, transform: 'none', filter: 'none' }
+        ], { duration: 1000, easing: E.out });
+        fadeUp([eb], { y: 6 });
+        await revealWords(words, { total: 2300, duration: 800, from: { opacity: 0, filter: 'blur(6px)', transform: 'translateY(-8px) scale(1.2)' } });
+        await fadeUp([sign], { y: 6 });
+        st(every(laugh, 3800, 6000, 1500));
+        st(every(spin, 6500, 9000, 4500));
+        st(every(tickle, 9000, 13000, 7000));
+      },
+      destroy() { layer.stop(); st.stop(); }
+    };
+  }
+
+  /* registro por nombre: { nombre: { fn, seal } } */
+  window.THEMES_EXTRA = {
+    oceano: { fn: mar, seal: 'teal' },
+    cine: { fn: cine, seal: 'red' },
+    nieve: { fn: nieve, seal: 'ice' },
+    espacio: { fn: espacio, seal: 'indigo' },
+    globos: { fn: globos, seal: 'coral' },
+    luciernagas: { fn: bosque, seal: 'leaf' },
+    musica: { fn: musica, seal: 'berry' },
+    pochita: { fn: pochita, seal: 'orange' },
+    mew: { fn: mewTheme, seal: 'blush' }
+  };
 })();

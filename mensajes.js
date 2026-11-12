@@ -11,7 +11,37 @@
       - No uses el carácter ` dentro del mensaje.
 
    El orden aquí es el orden en que se mostrarán las cartas.
-   Hay 15 estilos distintos: cada mensaje (hasta 15) tendrá el suyo.
+
+   ── QUÉ ESTILO LE TOCA A CADA MENSAJE ──────────────────────
+   Según su posición en esta lista:
+
+     1. carta        Carta de papel: el sobre cae y estalla en corazones
+     2. noche        Cielo estrellado con aurora y constelación de corazón
+     3. jardin       Jardín de flores, mariposas y una catarina
+     4. videojuego   Conejito estilo videojuego, el texto se escribe solo
+     5. scrapbook    Nota pegada con cintas, stickers y polaroid
+     6. lluvia       Tormenta que se despeja y sale el arcoíris
+     7. mew          Mew llega en una burbuja y vuela riéndose alrededor
+     8. pochita      Pochita llega corriendo con la carta en la boca
+     9. oceano       Botella con mensaje bajo el mar
+    10. cine         Telón, cuenta 3·2·1 y créditos con el nombre
+    11. nieve        Ventana empañada en un paisaje nevado
+    12. sakura       Tarjeta colgante con pétalos de cerezo y faroles
+    13. globos       Tarjeta que sube con globos y confeti
+    14. luciernagas  Bosque de noche; las luciérnagas encienden el texto
+    15. musica       Tocadiscos y letra estilo karaoke
+
+   ¿Quieres elegirlo tú? Agrega  estilo: 'nombre'  al mensaje:
+
+     {
+       nombre: 'Ana',
+       estilo: 'pochita',
+       mensaje: `...`,
+     },
+
+   Los mensajes sin "estilo" toman los que queden libres, en el
+   orden de la tabla, sin repetirse. Además existen 'atardecer' y
+   'espacio' por si quieres usarlos a mano.
 */
 
 const MENSAJES = [

@@ -709,15 +709,49 @@
     };
   }
 
-  /* 15 estilos: 8 de aquí + 7 de themes-extra.js. Cada uno tiene su color de sobre */
-  const EXTRA = window.THEMES_EXTRA || [];
-  const THEMES = [carta, noche, jardin, rpg, scrapbook, lluvia, atardecer, sakura, ...EXTRA.map((t) => t.fn)];
-  const SEALS = ['rose', 'lilac', 'mint', 'gold', 'plum', 'sky', 'peach', 'pink', ...EXTRA.map((t) => t.seal)];
+  /* ---------------------------------------------------------
+     REGISTRO DE ESTILOS
+     Cada estilo tiene un nombre (el que se puede poner en
+     mensajes.js con  estilo: 'nombre') y un color de sobre.
+     ORDER es el orden por defecto de los 15 estilos.
+     --------------------------------------------------------- */
+  const REG = {
+    carta: { fn: carta, seal: 'rose' },
+    noche: { fn: noche, seal: 'lilac' },
+    jardin: { fn: jardin, seal: 'mint' },
+    videojuego: { fn: rpg, seal: 'gold' },
+    scrapbook: { fn: scrapbook, seal: 'plum' },
+    lluvia: { fn: lluvia, seal: 'sky' },
+    atardecer: { fn: atardecer, seal: 'peach' },
+    sakura: { fn: sakura, seal: 'pink' },
+    ...(window.THEMES_EXTRA || {})
+  };
+  const ORDER = ['carta', 'noche', 'jardin', 'videojuego', 'scrapbook', 'lluvia', 'mew', 'pochita', 'oceano', 'cine', 'nieve', 'sakura', 'globos', 'luciernagas', 'musica'].filter((n) => REG[n]);
+  const ALIAS = { rpg: 'videojuego', juego: 'videojuego', mar: 'oceano', perrito: 'pochita', perro: 'pochita', bosque: 'luciernagas', luciernaga: 'luciernagas', cohete: 'espacio', gatito: 'mew' };
+  const norm = (v) => String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  let ASSIGN = [];
+  /* reparte los estilos: respeta los que se eligieron a mano y
+     completa el resto con los que falten, en orden, sin repetir */
+  function assign(list) {
+    const want = list.map((m, i) => {
+      if (!m.estilo) return null;
+      const k = ALIAS[norm(m.estilo)] || norm(m.estilo);
+      if (REG[k]) return k;
+      console.warn(`mensajes.js: el estilo "${m.estilo}" (mensaje ${i + 1}) no existe. Opciones: ${Object.keys(REG).join(', ')}`);
+      return null;
+    });
+    const used = new Set(want.filter(Boolean));
+    const free = ORDER.filter((n) => !used.has(n));
+    ASSIGN = want.map((k, i) => k || free.shift() || ORDER[i % ORDER.length]);
+    return ASSIGN;
+  }
+  const styleOf = (i) => ASSIGN[i] || ORDER[i % ORDER.length];
+  const sealFor = (i) => REG[styleOf(i)].seal;
+  const envFor = (i) => (sealFor(i) === 'rose' ? 'envelope' : 'envelope-' + sealFor(i));
   const TRANSITIONS = ['iris', 'pixels', 'wipe', 'curtain', 'diamond', 'rise', 'blinds', 'blur', 'zoom', 'pixels', 'slide', 'iris', 'curtain', 'blur', 'diamond'];
-  const envFor = (i) => { const s = SEALS[i % SEALS.length]; return s === 'rose' ? 'envelope' : 'envelope-' + s; };
 
   function message(ctx) {
-    const s = THEMES[ctx.idx % THEMES.length](ctx);
+    const s = REG[styleOf(ctx.idx)].fn(ctx);
     s.el.setAttribute('aria-label', `Carta ${ctx.idx + 1} de ${ctx.total}, de ${ctx.msg.de}`);
     return s;
   }
@@ -918,16 +952,86 @@
     const foot = h('div', 'finale-foot');
     const sub = h('p', 'finale-sub');
     sub.textContent = data.final.sub;
-    const btn = h('button', 'btn-primary', '<span>Abrir mi cofre</span>');
-    btn.type = 'button';
-    btn.prepend(PX.img('sparkle', 2));
-    btn.addEventListener('click', onChest);
-    foot.append(sub, btn);
-    el.append(eyebrow, counter, sr, srNames, swirl, flash, foot);
+    const hint = h('p', 'finale-hint', `${FX.canHover.matches ? 'Haz clic en' : 'Toca'} el cofre para abrirlo`);
+    foot.append(sub, hint);
+    /* cofre que cae al terminar el remolino y guarda todas las cartas */
+    const fchest = h('button', 'fchest');
+    fchest.type = 'button';
+    fchest.setAttribute('aria-label', 'Abrir el cofre con todas tus cartas');
+    const fGlow = h('i', 'fc-glow');
+    const fLid = PX.img('chestLid', 1, 'fc-lid');
+    const fBody = PX.img('chestBody', 1, 'fc-body');
+    fchest.append(fGlow, fLid, fBody);
+    el.append(eyebrow, counter, sr, srNames, fchest, swirl, flash, foot);
+    let chestDropped = false, chestReady = false, chestOpening = false;
+    const lay = { textCY: 0, chestCY: 0, mouthY: 0, cw: 0, bh: 0 };
+    const layout = () => {
+      lay.cw = Math.min(250, W * 0.58, H * 0.36);
+      lay.bh = lay.cw * 28 / 46;
+      lay.textCY = H * (H < 700 ? 0.25 : 0.27);
+      lay.chestCY = H * (H < 520 ? 0.6 : 0.63);
+      lay.mouthY = lay.chestCY - lay.bh / 2;
+      fchest.style.width = lay.cw + 'px';
+      fchest.style.top = lay.chestCY + 'px';
+      foot.style.top = Math.min(H - (H < 520 ? 72 : 110), lay.chestCY + lay.bh / 2 + (H < 520 ? 10 : 22)) + 'px';
+    };
+    const dropChest = () => {
+      if (chestDropped) return;
+      chestDropped = true;
+      fchest.style.visibility = 'visible';
+      fLid.style.opacity = '1';
+      anim(fchest, [
+        { transform: 'translate(-50%, -50%) translateY(-90vh) rotate(-8deg)' },
+        { transform: 'translate(-50%, -50%) translateY(0) rotate(2deg) scale(1.06, 0.9)', offset: 0.72 },
+        { transform: 'translate(-50%, -50%) translateY(-22px) rotate(-1deg)', offset: 0.86 },
+        { transform: 'translate(-50%, -50%)' }
+      ], { duration: 950, easing: E.in }).then((a) => {
+        a.cancel();
+        const r = fBody.getBoundingClientRect();
+        burst(el, r.left + 10, r.bottom - 6, { names: ['sparkle-s'], n: 7, spread: 70, scale: 3, up: 0, z: 5 });
+        burst(el, r.right - 10, r.bottom - 6, { names: ['sparkle-s'], n: 7, spread: 70, scale: 3, up: 0, z: 5 });
+      });
+    };
+    const closeChest = () => {
+      anim(fLid, [{ transform: 'scaleY(1)', opacity: 1 }, { transform: 'scaleY(0.05)', opacity: 0 }], { duration: 260, easing: E.in, fill: 'forwards' });
+      setTimeout(() => anim(fchest, [{ transform: 'translate(-50%, -50%) scale(1)' }, { transform: 'translate(-50%, -50%) scale(1.12, 0.88)' }, { transform: 'translate(-50%, -50%) scale(0.96, 1.05)' }, { transform: 'translate(-50%, -50%)' }], { duration: 520, easing: E.out, fill: 'none' }), 240);
+    };
+    const openChest = async () => {
+      if (!chestReady || chestOpening) return;
+      chestOpening = true;
+      fchest.classList.remove('ready');
+      anim(foot, [{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
+      await anim(fchest, [
+        { transform: 'translate(-50%, -50%) rotate(0)' }, { transform: 'translate(-50%, -50%) rotate(-4deg)' }, { transform: 'translate(-50%, -50%) rotate(4deg)' },
+        { transform: 'translate(-50%, -50%) rotate(-3deg) scale(1.04)' }, { transform: 'translate(-50%, -50%) scale(1.06, 0.94)' }, { transform: 'translate(-50%, -50%)' }
+      ], { duration: 650, easing: 'ease-in-out', fill: 'none' });
+      fLid.getAnimations().forEach((a) => a.cancel());
+      anim(fLid, [{ transform: 'scaleY(0.05)', opacity: 0 }, { transform: 'scaleY(1.15)', opacity: 1, offset: 0.6 }, { transform: 'scaleY(1)', opacity: 1 }], { duration: 550, easing: E.out });
+      anim(fGlow, [{ opacity: 0, transform: 'translate(-50%, -50%) scale(0.3)' }, { opacity: 1, transform: 'translate(-50%, -50%) scale(1.3)' }], { duration: 900, easing: E.out });
+      const r = fBody.getBoundingClientRect();
+      burst(el, r.left + r.width / 2, r.top, { names: ['heart-s', 'heart-s-rose', 'sparkle', 'star', 'sparkle-pink'], n: 26, spread: 220, scale: 3, up: 80, z: 6 });
+      msgs.forEach((m, i) => {
+        if (i > 9) return;
+        const e = PX.img(envFor(i), small ? 2 : 3, 'fc-env');
+        e.style.left = r.left + r.width / 2 + 'px';
+        e.style.top = r.top + 'px';
+        el.appendChild(e);
+        const a = (i / Math.min(10, msgs.length)) * Math.PI - Math.PI;
+        const d = rand(90, 170);
+        anim(e, [
+          { transform: 'translate(-50%, -50%) scale(0.3)', opacity: 1 },
+          { transform: `translate(calc(-50% + ${Math.cos(a) * d}px), calc(-50% + ${Math.sin(a) * d * 0.9 - 40}px)) rotate(${rand(-30, 30)}deg) scale(1.1)`, opacity: 1 }
+        ], { duration: 900, delay: 150 + i * 40, easing: E.back });
+      });
+      await wait(1300);
+      onChest();
+    };
+    fchest.addEventListener('click', openChest);
 
     const COLORS = ['#ffd5e3', '#ff9cc0', '#ffe9a6', '#ffffff', '#ffc2d8', '#e0d4ff'];
     const trail = [], arms = [], fw = [];
     let particles = [];
+    let crisp = null;
     let start = 0, phase = 'wait', textStart = 0, boomAt = 0, footShown = false, W = innerWidth, H = innerHeight;
     let cy0 = H * 0.46;
 
@@ -941,24 +1045,25 @@
     const easeIO = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
     async function buildText() {
-      try { await Promise.all([document.fonts.load('italic 600 80px Fraunces'), document.fonts.load('700 80px Caveat')]); } catch (e) { /* sin fuentes, igual sigue */ }
+      try { await Promise.all([document.fonts.load('600 80px Fraunces'), document.fonts.load('700 80px Caveat')]); } catch (e) { /* sin fuentes, igual sigue */ }
       const lines = data.final.lineas;
       const c = document.createElement('canvas');
       c.width = W; c.height = H;
       const x = c.getContext('2d');
-      const fontFor = (i, fs) => (i === lines.length - 1 && lines.length > 1 ? `700 ${fs * 1.35}px Caveat, cursive` : `italic 600 ${fs}px Fraunces, Georgia, serif`);
+      const fontFor = (i, fs) => (i === lines.length - 1 && lines.length > 1 ? `700 ${fs * 1.35}px Caveat, cursive` : `600 ${fs}px Fraunces, Georgia, serif`);
       let fs = Math.min(W * 0.13, 112);
       const widest = () => Math.max(...lines.map((l, i) => { x.font = fontFor(i, fs); return x.measureText(l).width; }));
       while (widest() > W * 0.88 && fs > 18) fs *= 0.94;
       let lh = fs * 1.25;
-      while (lh * lines.length > H * 0.42 && fs > 18) { fs *= 0.94; lh = fs * 1.25; }
+      while (lh * lines.length > H * 0.3 && fs > 18) { fs *= 0.94; lh = fs * 1.25; }
       const blockH = lh * lines.length;
-      const top = H * 0.43 - blockH / 2;
+      const top = lay.textCY - blockH / 2;
       x.textAlign = 'center';
       x.textBaseline = 'middle';
       x.fillStyle = '#fff';
       lines.forEach((l, i) => { x.font = fontFor(i, fs); x.fillText(l, W / 2, top + lh * (i + 0.5)); });
-      let gap = clamp(Math.round(fs / 16), 3, 6);
+      crisp = { lines, fontFor, fs, lh, top };
+      let gap = clamp(Math.round(fs / 18), 2, 5);
       const img = x.getImageData(0, 0, W, H).data;
       let pts = [];
       const sample = () => {
@@ -966,17 +1071,16 @@
         for (let yy = 0; yy < H; yy += gap) for (let xx = 0; xx < W; xx += gap) if (img[(yy * W + xx) * 4 + 3] > 140) pts.push([xx, yy]);
       };
       sample();
-      while (pts.length > 3200) { gap++; sample(); }
+      while (pts.length > 4800) { gap++; sample(); }
       const cx = W / 2;
       particles = pts.map(([tx, ty]) => {
         const a = rand(0, Math.PI * 2), r = rand(Math.min(W, H) * 0.2, Math.min(W, H) * 0.7);
         return {
-          sx: cx + rand(-6, 6), sy: cy0 + rand(-6, 6),
-          cx: cx + Math.cos(a) * r, cy: cy0 + Math.sin(a) * r,
+          sx: cx + rand(-lay.cw * 0.3, lay.cw * 0.3), sy: lay.mouthY + rand(-4, 4),
+          cx: cx + Math.cos(a) * r, cy: lay.mouthY - Math.abs(Math.sin(a)) * r,
           tx, ty, ox: 0, oy: 0, s: Math.max(2, gap - 1), c: pick(COLORS), d: rand(0, 700), ph: rand(0, 6.28)
         };
       });
-      foot.style.top = Math.min(H - 150, top + blockH + 28) + 'px';
     }
 
     /* fuego artificial con forma de corazón */
@@ -994,8 +1098,10 @@
       if (phase === 'wait') return;
       const now = t - start;
       const cx = w / 2;
-      cy0 = hh * 0.46;
+      const pvC = clamp((now - VS) / VD, 0, 1);
+      cy0 = hh * 0.44 + (lay.mouthY - hh * 0.44) * easeIO(pvC);
       const R = Math.min(w, hh) * (w < 600 ? 0.38 : 0.33);
+      if (phase === 'swirl' && now > VS + VD * 0.12) dropChest();
 
       if (phase === 'swirl') {
         const pv = clamp((now - VS) / VD, 0, 1);
@@ -1051,9 +1157,10 @@
           boomAt = t;
           swirl.style.display = 'none';
           anim(counter, [{ opacity: 1 }, { opacity: 0 }], { duration: 600 });
-          anim(flash, [{ opacity: 0 }, { opacity: 0.9, offset: 0.12 }, { opacity: 0 }], { duration: 1100, easing: 'ease-out' });
+          closeChest();
+          anim(flash, [{ opacity: 0 }, { opacity: 0.6, offset: 0.12 }, { opacity: 0 }], { duration: 1000, easing: 'ease-out' });
           anim(glow, [{ opacity: 0, transform: 'translate(-50%,-50%) scale(0.3)' }, { opacity: 1, transform: 'translate(-50%,-50%) scale(1)' }], { duration: 1400, easing: E.out });
-          burst(el, cx, cy0, { names: ['heart', 'heart-rose', 'heart-s', 'sparkle', 'star'], n: 30, spread: Math.min(w, hh) * 0.5, scale: 3, up: 0, z: 5 });
+          burst(el, cx, lay.mouthY, { names: ['heart', 'heart-rose', 'heart-s', 'sparkle', 'star'], n: 30, spread: Math.min(w, hh) * 0.45, scale: 3, up: 60, z: 5 });
         }
       }
 
@@ -1097,6 +1204,19 @@
       if (phase === 'text' || phase === 'done') {
         const te = t - textStart;
         let all = true;
+        /* cuando las partículas ya llegaron, aparece el texto nítido para que se lea perfecto */
+        const crispA = crisp ? clamp((te - 1900) / 1000, 0, 1) : 0;
+        if (crispA > 0) {
+          ctx.save();
+          ctx.globalAlpha = crispA;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#fff6fa';
+          ctx.shadowColor = 'rgba(255, 134, 176, 0.85)';
+          ctx.shadowBlur = 18 + Math.sin(t / 700) * 6;
+          crisp.lines.forEach((l, i) => { ctx.font = crisp.fontFor(i, crisp.fs); ctx.fillText(l, w / 2, crisp.top + crisp.lh * (i + 0.5)); });
+          ctx.restore();
+        }
         const hover = FX.canHover.matches;
         const mx = ((FX.pointer.x + 1) / 2) * w, my = ((FX.pointer.y + 1) / 2) * hh;
         particles.forEach((q) => {
@@ -1115,7 +1235,7 @@
               ix += q.ox; iy += q.oy;
             }
           }
-          ctx.globalAlpha = p === 0 ? 0 : p < 1 ? 0.5 + p * 0.5 : 0.86 + Math.sin(t / 380 + q.ph) * 0.14;
+          ctx.globalAlpha = (p === 0 ? 0 : p < 1 ? 0.5 + p * 0.5 : 0.86 + Math.sin(t / 380 + q.ph) * 0.14) * (1 - 0.6 * crispA);
           ctx.fillStyle = q.c;
           ctx.fillRect(Math.round(ix), Math.round(iy), q.s, q.s);
         });
@@ -1124,6 +1244,8 @@
           footShown = true;
           phase = 'done';
           anim(foot, [{ opacity: 0, transform: 'translate(-50%, 14px)' }, { opacity: 1, transform: 'translate(-50%, 0)' }], { duration: 800 });
+          chestReady = true;
+          fchest.classList.add('ready');
           firework(w * 0.2, hh * 0.25);
           firework(w * 0.8, hh * 0.22);
           st(every(() => firework(rand(w * 0.12, w * 0.88), rand(hh * 0.1, hh * 0.32)), 1400, 2600, 1200));
@@ -1148,6 +1270,8 @@
         hide(foot, eyebrow);
         cards.forEach((c) => (c.el.style.opacity = 0));
         W = innerWidth; H = innerHeight;
+        layout();
+        fchest.style.visibility = 'hidden';
         const ready = buildText();
         anim(eyebrow, [{ opacity: 0, transform: 'translate(-50%, 8px)' }, { opacity: 1, transform: 'translate(-50%, 0)' }], { duration: 900, delay: 300 });
         await ready;
@@ -1155,6 +1279,9 @@
         start = performance.now();
         if (FX.reduce.matches) {
           swirl.style.display = 'none';
+          fchest.style.visibility = 'visible';
+          fLid.style.opacity = '0';
+          chestDropped = true;
           particles.forEach((q) => (q.d = 0));
           phase = 'text';
           textStart = start - 5000;
@@ -1167,7 +1294,7 @@
   /* ---------------------------------------------------------
      COFRE — cartas guardadas para volver a leer
      --------------------------------------------------------- */
-  function chest({ data, onOpen, onFinale, onRestart }) {
+  function chest({ data, ceremony, onOpen, onFinale, onRestart }) {
     const el = h('section', 'scene th-chest');
     el.dataset.tint = '#2a1730';
     depth(stars(el, innerWidth < 600 ? 30 : 55), 10);
@@ -1202,6 +1329,8 @@
     });
     area.append(h('i', 'chest-glow'), lid, letters, body);
 
+    const st = stopper();
+
     const actions = h('div', 'chest-actions');
     const again = h('button', 'link-btn', 'Ver el final otra vez');
     const restart = h('button', 'link-btn', 'Empezar desde la caja');
@@ -1212,11 +1341,34 @@
     scroller.append(head, area, actions);
     el.appendChild(scroller);
 
+    const lettersOut = () => {
+      items.forEach((b, i) =>
+        anim(b, [{ opacity: 0, transform: 'translateY(70px) rotate(0deg) scale(0.5)' }, { opacity: 1, transform: 'translateY(-30px) rotate(0deg) scale(1.05)', offset: 0.6 }, { opacity: 1, transform: b.dataset.t + ' scale(1)' }], { duration: 900, delay: i * 90, easing: E.out, fill: 'backwards' })
+          .then(() => { b.style.opacity = ''; b.classList.add('bob'); })
+      );
+    };
     return {
       el,
+      destroy() { st.stop(); },
       async enter() {
         const hs = head.children;
         hide([...hs], lid, body, items, actions);
+        if (ceremony && !FX.reduce.matches) {
+          /* viene del final: el cofre ya está abierto y las cartas salen volando */
+          lid.style.opacity = '1';
+          body.style.opacity = '1';
+          scroller.scrollTop = scroller.scrollHeight;
+          anim(area.querySelector('.chest-glow'), [{ opacity: 0 }, { opacity: 1 }], { duration: 900 });
+          await wait(250);
+          const [cx, cy] = centerOf(body);
+          burst(el, cx, cy - 30, { names: ['heart-s', 'heart-s-rose', 'sparkle', 'star', 'sparkle-pink'], n: 20, spread: 200, scale: 3, up: 70 });
+          lettersOut();
+          await wait(1600);
+          scroller.scrollTo({ top: 0, behavior: 'smooth' });
+          fadeUp(hs, { step: 110 });
+          fadeUp([actions], { delay: 500 });
+          return;
+        }
         fadeUp(hs, { step: 110, delay: 150 });
         anim(lid, [{ opacity: 0, transform: 'translateY(20px)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: 350 });
         await anim(body, [{ opacity: 0, transform: 'translateY(30px)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: 350, easing: E.out });
@@ -1229,5 +1381,5 @@
     };
   }
 
-  window.SCENES = { message, intro, finale, chest, TRANSITIONS, THEMES, SEALS, envFor };
+  window.SCENES = { message, intro, finale, chest, TRANSITIONS, STYLES: Object.keys(REG), ORDER, assign, styleOf, sealFor, envFor };
 })();

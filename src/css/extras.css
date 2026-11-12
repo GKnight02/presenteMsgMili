@@ -1,0 +1,155 @@
+/* =========================================================
+   Detalles animados extra de cada escena (ver src/js/extras.js)
+   ========================================================= */
+[class^="x-"], [class*=" x-"] { pointer-events: none; }
+
+/* humo compartido (casita de la noche y cabaña de la nieve) */
+.x-house .smoke, .x-cabin .smoke { position: absolute; right: 6px; top: -34px; width: 10px; height: 10px; border-radius: 50%; background: rgba(225, 220, 240, 0.4); opacity: 0; animation: xSmoke 4s linear infinite; }
+.x-house .s2, .x-cabin .s2 { animation-delay: -1.3s; }
+.x-house .s3, .x-cabin .s3 { animation-delay: -2.6s; }
+@keyframes xSmoke { from { transform: translate(0, 0) scale(0.5); opacity: 0; } 20% { opacity: 0.7; } to { transform: translate(-20px, -54px) scale(1.9); opacity: 0; } }
+@keyframes xWin { 0%, 100% { opacity: 1; } 48% { opacity: 1; } 50% { opacity: 0.75; } 52% { opacity: 1; } }
+
+/* 1) carta: rayo de luz con polvito */
+.x-beam { position: absolute; top: -20%; left: 4%; z-index: 1; width: 36%; height: 140%; overflow: hidden; transform: rotate(-24deg); background: linear-gradient(90deg, transparent, rgba(255, 244, 220, 0.4), transparent); animation: xBeam 7s ease-in-out infinite alternate; }
+.x-beam .floater { opacity: 0.6; }
+@keyframes xBeam { from { opacity: 0.55; } to { opacity: 1; } }
+
+/* 2) noche: casita con humo y nube frente a la luna */
+.x-house { position: absolute; right: 14%; bottom: 9%; z-index: 1; width: 54px; height: 38px; background: #1d1840; box-shadow: inset -8px 0 0 #15123a; }
+.x-house .roof { position: absolute; left: -7px; right: -7px; top: -22px; height: 23px; background: #15123a; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.x-house .win { position: absolute; left: 11px; top: 11px; width: 12px; height: 12px; background: #ffd25e; box-shadow: 0 0 14px #ffd25e; animation: xWin 5s infinite; }
+.x-house .chim { position: absolute; right: 9px; top: -26px; width: 8px; height: 14px; background: #15123a; }
+.x-mooncloud { position: absolute; top: calc(10% + var(--safe-t)); left: 100%; z-index: 1; opacity: 0.8; filter: brightness(0.55) saturate(0.6); animation: xCloudPass 34s linear infinite; }
+@keyframes xCloudPass { from { transform: translateX(0); } to { transform: translateX(calc(-100vw - 200px)); } }
+
+/* 3) jardín: abejitas */
+.x-bee { position: absolute; left: 0; z-index: 3; width: 15px; height: 11px; border-radius: 50%; background: repeating-linear-gradient(90deg, #ffd25e 0 3px, #2b1733 3px 6px); box-shadow: 0 0 0 1px #2b1733; animation: xBee 10s ease-in-out infinite; }
+.x-bee.b0 { top: 20%; }
+.x-bee.b1 { top: 42%; animation-duration: 12s; animation-delay: -4s; }
+.x-bee.b2 { top: 62%; animation-duration: 9s; animation-delay: -7s; }
+.x-bee .wing { position: absolute; top: -6px; left: 2px; width: 8px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); animation: xWing 0.1s steps(2) infinite; }
+.x-bee .w2 { left: 6px; }
+@keyframes xBee { 0%, 100% { transform: translate(8vw, 0); } 25% { transform: translate(38vw, -6vh); } 50% { transform: translate(78vw, 3vh) scaleX(-1); } 75% { transform: translate(46vw, 8vh) scaleX(-1); } }
+@keyframes xWing { 50% { transform: scaleY(0.4); } }
+
+/* 4) videojuego: colinas que avanzan y bloques "?" */
+.x-hills8 {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; height: calc(var(--nav-h) + 80px);
+  background:
+    radial-gradient(circle at 50% 100%, #b9e6a8 60%, transparent 61%) 0 100% / 160px 110px repeat-x,
+    radial-gradient(circle at 50% 100%, #9bd98c 60%, transparent 61%) 60px 100% / 120px 80px repeat-x;
+  animation: xHills 14s linear infinite;
+  opacity: 0.85;
+}
+@keyframes xHills { to { background-position: -160px 100%, -60px 100%; } }
+.x-qblock { position: absolute; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px; background: #ffd25e; border: 3px solid #2b1733; box-shadow: inset -3px -3px 0 #e0a033, inset 3px 3px 0 #fff2b8; font-family: var(--f-pixel); font-weight: 600; color: #b06a3b; animation: xQ 1.4s steps(3) infinite alternate; }
+.x-qblock.q0 { left: 8%; top: 30%; }
+.x-qblock.q1 { right: 10%; top: 44%; animation-delay: -0.5s; }
+.x-qblock.q2 { left: 18%; top: 58%; animation-delay: -0.9s; }
+@keyframes xQ { to { transform: translateY(-8px); } }
+
+/* 5) scrapbook: guirnalda de lucecitas */
+.x-lights { position: absolute; top: calc(6px + var(--safe-t)); left: -2%; right: -2%; z-index: 1; height: 30px; display: flex; justify-content: space-around; border-top: 2px solid rgba(90, 60, 40, 0.45); border-radius: 0 0 50% 50% / 0 0 22px 22px; }
+.x-lights i { width: 9px; height: 13px; margin-top: 3px; border-radius: 50% 50% 45% 45%; background: currentColor; animation: xBlink 1.8s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -0.45s); }
+.x-lights i:nth-child(4n + 1) { color: #ff86b0; }
+.x-lights i:nth-child(4n + 2) { color: #ffd25e; }
+.x-lights i:nth-child(4n + 3) { color: #8ec9ff; }
+.x-lights i:nth-child(4n + 4) { color: #8fe0b8; }
+.x-lights i:nth-child(odd) { margin-top: 10px; }
+@keyframes xBlink { from { opacity: 0.35; box-shadow: none; } to { opacity: 1; box-shadow: 0 0 12px currentColor; } }
+
+/* 6) lluvia: pájaros cuando ya salió el sol */
+.x-lbird { opacity: 0; z-index: 2; animation: birdFly var(--d) linear var(--dl) infinite, xLate 1.5s ease 6s forwards; }
+.x-lbird svg { fill: #3c4a6a; }
+@keyframes xLate { to { opacity: 1; } }
+
+/* 8) sakura: monte a lo lejos y pájaros */
+.x-mount { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; height: 42%; }
+.x-mount i { position: absolute; left: 18%; width: 64%; height: 100%; opacity: 0.5; background: linear-gradient(180deg, #ffffff 0 32%, #e7b8d2 32%, #d29bc0 100%); clip-path: polygon(0 100%, 38% 28%, 45% 20%, 55% 20%, 62% 28%, 100% 100%); }
+.x-sbird svg { fill: #b8324f; opacity: 0.55; }
+
+/* 9) océano: reflejos de luz y medusas */
+.x-caustics {
+  position: absolute; inset: 0; z-index: 0; mix-blend-mode: screen;
+  background:
+    repeating-radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.07) 0 8px, transparent 8px 26px),
+    repeating-radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.06) 0 10px, transparent 10px 30px);
+  background-size: 300px 300px, 360px 360px;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 75%);
+  mask-image: linear-gradient(180deg, #000, transparent 75%);
+  animation: xCaustics 14s linear infinite;
+}
+@keyframes xCaustics { to { background-position: 300px 150px, -360px 180px; } }
+.x-jelly { position: absolute; bottom: -120px; z-index: 1; display: grid; justify-items: center; animation: xJelly 28s linear infinite; }
+.x-jelly.j1 { animation-duration: 34s; animation-delay: -11s; }
+.x-jelly.j2 { animation-duration: 30s; animation-delay: -20s; }
+.x-jelly .bell { display: block; width: 46px; height: 34px; border-radius: 50% 50% 22% 22%; background: radial-gradient(circle at 50% 30%, rgba(255, 210, 245, 0.95), rgba(220, 140, 230, 0.65)); box-shadow: 0 0 18px rgba(255, 180, 240, 0.65); animation: xPulse 1.6s ease-in-out infinite; }
+.x-jelly .tent { display: block; width: 30px; height: 44px; background: repeating-linear-gradient(90deg, rgba(255, 190, 240, 0.75) 0 2px, transparent 2px 7px); transform-origin: 50% 0; animation: xTent 1.6s ease-in-out infinite; }
+@keyframes xJelly { 0% { transform: translate(0, 0); } 50% { transform: translate(34px, -65vh); } 100% { transform: translate(-10px, -135vh); } }
+@keyframes xPulse { 50% { transform: scale(1.14, 0.84); } }
+@keyframes xTent { 50% { transform: scaleY(0.78) skewX(8deg); } }
+
+/* 10) cine: público */
+.x-crowd { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; height: 80px; }
+.x-crowd i { position: absolute; bottom: 26px; width: 40px; height: 44px; border-radius: 50% 50% 40% 40%; background: #050203; animation: xHead 3s ease-in-out var(--dl) infinite; }
+@keyframes xHead { 50% { transform: translateY(-4px) rotate(3deg); } }
+
+/* 11) nieve: aurora y cabaña humeando */
+.x-naurora { z-index: 0; }
+.x-naurora i { background: linear-gradient(90deg, transparent, rgba(143, 224, 184, 0.35), rgba(110, 180, 255, 0.3), transparent); }
+.x-cabin { position: absolute; left: 9%; bottom: 13%; z-index: 2; width: 72px; height: 46px; background: #6c3d24; box-shadow: inset -9px 0 0 #4c2816; }
+.x-cabin .roof { position: absolute; left: -9px; right: -9px; top: -28px; height: 30px; background: linear-gradient(180deg, #ffffff 0 40%, #8a5a3a 40%); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.x-cabin .win { position: absolute; left: 14px; top: 14px; width: 16px; height: 14px; background: #ffd25e; box-shadow: 0 0 16px #ffd25e; animation: xWin 4s infinite; }
+.x-cabin .chim { position: absolute; right: 10px; top: -36px; width: 10px; height: 20px; background: #4c2816; box-shadow: inset 0 3px 0 #ffffff; }
+
+/* 13) globos: globo aerostático */
+.x-air { position: absolute; right: 8%; top: 20%; z-index: 1; display: grid; justify-items: center; animation: xAir 16s ease-in-out infinite alternate; }
+.x-air i { display: block; }
+.x-air .env { width: 66px; height: 80px; border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%; background: repeating-linear-gradient(90deg, #ff86b0 0 13px, #ffd25e 13px 26px, #8ec9ff 26px 39px); box-shadow: inset -8px -6px 0 rgba(0, 0, 0, 0.08); }
+.x-air .ropes { width: 26px; height: 14px; border-left: 2px solid #6b4a2a; border-right: 2px solid #6b4a2a; }
+.x-air .basket { width: 24px; height: 15px; border-radius: 0 0 4px 4px; background: #b06a3b; box-shadow: inset 0 3px 0 #8a5634; }
+@keyframes xAir { from { transform: translate(0, 0) rotate(-2deg); } to { transform: translate(-32vw, 5vh) rotate(2deg); } }
+
+/* 14) luciérnagas: hongos que brillan y ojos de búho */
+.x-shrooms { position: absolute; left: 0; right: 0; bottom: 9%; z-index: 4; height: 1px; }
+.x-shroom { position: absolute; bottom: 0; filter: hue-rotate(150deg) drop-shadow(0 0 6px rgba(143, 224, 184, 0.8)); animation: xShroom 2.4s ease-in-out var(--dl) infinite alternate; }
+@keyframes xShroom { to { filter: hue-rotate(150deg) brightness(1.35) drop-shadow(0 0 14px rgba(143, 224, 184, 1)); } }
+.x-eyes { position: absolute; z-index: 3; display: flex; gap: 6px; }
+.x-eyes i { width: 7px; height: 7px; border-radius: 50%; background: #ffe38a; box-shadow: 0 0 8px #ffe38a; animation: xEyes 5s infinite; }
+.x-eyes.e0 { left: 16%; top: 54%; }
+.x-eyes.e1 { right: 20%; top: 62%; }
+.x-eyes.e1 i { animation-delay: -2.4s; }
+@keyframes xEyes { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+
+/* 15) música: bola de disco y luces que barren */
+.x-disco { position: absolute; top: 0; left: 50%; z-index: 1; display: grid; justify-items: center; translate: -50% 0; }
+.x-disco i { display: block; }
+.x-disco .string { width: 2px; height: calc(24px + var(--safe-t)); background: #8a7a9a; }
+.x-disco .ball {
+  width: 54px; height: 54px; border-radius: 50%;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.22) 1px, transparent 1px) 0 0 / 9px 9px,
+    linear-gradient(rgba(0, 0, 0, 0.22) 1px, transparent 1px) 0 0 / 9px 9px,
+    radial-gradient(circle at 35% 30%, #ffffff, #d6cde6 40%, #8a7ea8 82%);
+  box-shadow: 0 0 34px rgba(255, 255, 255, 0.5);
+  animation: xDisco 3s linear infinite;
+}
+@keyframes xDisco { to { background-position: 54px 0, 54px 0, 0 0; } }
+.x-spots { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+.x-spots i { position: absolute; top: 40px; left: 50%; width: 34vmax; height: 130vh; transform-origin: 50% 0; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); mix-blend-mode: screen; animation: xSpot 7s ease-in-out infinite alternate; }
+.x-spots i:nth-child(1) { background: linear-gradient(180deg, rgba(255, 134, 176, 0.24), transparent 75%); }
+.x-spots i:nth-child(2) { background: linear-gradient(180deg, rgba(185, 160, 255, 0.24), transparent 75%); animation-delay: -2s; animation-duration: 9s; }
+.x-spots i:nth-child(3) { background: linear-gradient(180deg, rgba(255, 210, 94, 0.2), transparent 75%); animation-delay: -4s; animation-duration: 6s; }
+.x-spots i:nth-child(4) { background: linear-gradient(180deg, rgba(143, 224, 184, 0.2), transparent 75%); animation-delay: -6s; animation-duration: 8s; }
+@keyframes xSpot { from { transform: translateX(-50%) rotate(-38deg); } to { transform: translateX(-50%) rotate(38deg); } }
+
+@media (max-width: 600px) {
+  .x-qblock.q2, .x-eyes.e1 { display: none; }
+  .x-air { right: 2%; top: 26%; scale: 0.75; }
+  .x-cabin { scale: 0.8; transform-origin: 0 100%; }
+  .x-disco .ball { width: 40px; height: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .x-lbird { opacity: 1; }
+}
