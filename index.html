@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cartas para Milagros</title>
+  <meta name="description" content="Una caja llena de cartas de personas que te quieren.">
+  <meta name="theme-color" content="#1d1326">
+  <meta property="og:title" content="Cartas para Milagros">
+  <meta property="og:description" content="Hay personas que te dejaron un mensaje.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23ff86b0' d='M1 0h2v1h1V0h2v1h1v2H6v1H5v1H4v1H3V5H2V4H1V3H0V1h1z'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Pixelify+Sans:wght@400;600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/css/styles.css">
+  <link rel="stylesheet" href="src/css/themes-extra.css">
+</head>
+<body>
+  <main id="app">
+    <div id="stage"></div>
+
+    <button id="toChest" class="chip" type="button" hidden><span>Volver al cofre</span></button>
+    <button id="autoBtn" class="chip chip-auto" type="button" hidden aria-pressed="true">
+      <svg class="i-pause" viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges"><path d="M2 1h1v6H2zM5 1h1v6H5z"/></svg>
+      <svg class="i-play" viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges"><path d="M2 1h1v6H2zM3 2h1v4H3zM4 3h1v2H4zM5 3h1v2H5z"/></svg>
+      <span class="lbl">Pausar</span>
+    </button>
+
+    <nav id="nav" class="nav" aria-label="Navegación de cartas" hidden>
+      <button id="prev" class="nav-arrow" type="button" aria-label="Carta anterior">
+        <svg viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges"><path d="M5 1h1v1H5v1H4v2h1v1h1v1H5V6H4V5H3V3h1V2h1z"/></svg>
+      </button>
+      <div class="line-view">
+        <div id="dots" class="line-track"></div>
+        <p id="counter" class="counter" aria-live="polite">1 de 1</p>
+      </div>
+      <button id="next" class="next-env" type="button">
+        <span class="ne-pic" aria-hidden="true"></span>
+        <span class="ne-txt"><span class="ne-k">Siguiente</span><span class="ne-de"></span></span>
+      </button>
+    </nav>
+  </main>
+
+  <noscript><p style="padding:24px;color:#fff">Esta página necesita JavaScript para mostrar las cartas.</p></noscript>
+
+  <!-- Los mensajes se editan en mensajes.js -->
+  <script src="mensajes.js"></script>
+  <script src="src/js/pixel.js"></script>
+  <script src="src/js/fx.js"></script>
+  <script src="src/js/themes-extra.js"></script>
+  <script src="src/js/scenes.js"></script>
+  <script src="src/js/app.js"></script>
+</body>
+</html>
