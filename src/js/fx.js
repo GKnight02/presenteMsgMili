@@ -36,12 +36,19 @@
 
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  /* salto de línea dentro de un párrafo (versos): separador de línea Unicode */
+  const BR = String.fromCharCode(8232);
+
   /* parrafos a partir del texto del mensaje */
   function paragraphs(text, cls = '') {
     const frag = document.createDocumentFragment();
     String(text).split(/\n{2,}|\r?\n/).filter((p) => p.trim()).forEach((p) => {
-      const el = h('p', cls);
-      el.textContent = p.trim();
+      const lines = p.trim().split(BR);
+      const el = h('p', lines.length > 1 ? `${cls} verso`.trim() : cls);
+      lines.forEach((l, j) => {
+        if (j) el.appendChild(document.createElement('br'));
+        el.appendChild(document.createTextNode(l.trim()));
+      });
       frag.appendChild(el);
     });
     return frag;
@@ -52,17 +59,63 @@
     const frag = document.createDocumentFragment();
     const words = [];
     String(text).split(/\n{2,}|\r?\n/).filter((p) => p.trim()).forEach((p) => {
-      const el = h('p', cls);
-      p.trim().split(/\s+/).forEach((w, i) => {
-        if (i) el.appendChild(document.createTextNode(' '));
-        const s = h('span', 'w');
-        s.textContent = w;
-        el.appendChild(s);
-        words.push(s);
+      const lines = p.trim().split(BR);
+      const el = h('p', lines.length > 1 ? `${cls} verso`.trim() : cls);
+      lines.forEach((l, j) => {
+        if (j) el.appendChild(document.createElement('br'));
+        l.trim().split(/\s+/).filter(Boolean).forEach((w, i) => {
+          if (i) el.appendChild(document.createTextNode(' '));
+          const s = h('span', 'w');
+          s.textContent = w;
+          el.appendChild(s);
+          words.push(s);
+        });
       });
       frag.appendChild(el);
     });
     return { frag, words };
+  }
+
+  /* ---------- mensajes largos en pantallas chicas ----------
+     follow(): mantiene a la vista lo que se va revelando dentro de su
+     contenedor con scroll (karaoke, máquina de escribir), salvo que la
+     persona ya haya movido el scroll a mano.
+     scrollHint(): si queda texto oculto, muestra "desliza para leer más"
+     abajo del contenedor hasta que se llegue al final. */
+  function userScrolled(box) {
+    if (!box._watch) {
+      box._watch = true;
+      const mark = () => { box._user = true; };
+      ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach((e) => box.addEventListener(e, mark, { passive: true }));
+    }
+    return box._user;
+  }
+  function follow(target, box = target && target.closest('.scroll')) {
+    if (!box || userScrolled(box) || box.scrollHeight <= box.clientHeight + 2) return;
+    const rects = target.getClientRects();
+    const r = rects.length ? rects[rects.length - 1] : target.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    const over = r.bottom - (b.bottom - Math.min(60, b.height * 0.2));
+    if (over > 1) box.scrollTop += over;
+  }
+  function scrollHint(root) {
+    root.querySelectorAll('.scroll').forEach((box) => {
+      if (box.querySelector(':scope > .more-hint')) return;
+      const left = () => box.scrollHeight - box.clientHeight - box.scrollTop;
+      if (box.scrollHeight <= box.clientHeight + 8 || left() < 8) return;
+      const hint = h('div', 'more-hint', '<span>desliza para leer más <b>↓</b></span>');
+      hint.setAttribute('aria-hidden', 'true');
+      box.appendChild(hint);
+      requestAnimationFrame(() => hint.classList.add('on'));
+      const check = () => {
+        if (left() < 12) {
+          hint.classList.remove('on');
+          box.removeEventListener('scroll', check);
+          setTimeout(() => hint.remove(), 400);
+        }
+      };
+      box.addEventListener('scroll', check, { passive: true });
+    });
   }
 
   function revealWords(words, { total = 1800, from = { opacity: 0, filter: 'blur(6px)', transform: 'translateY(6px)' }, delay = 0, duration = 650, easing = E.out, maxStep = 40 } = {}) {
@@ -409,5 +462,5 @@
     }
   };
 
-  window.FX = { hide, fadeUp, sceneBase, every, stopper, E, anim, wait, rand, pick, clamp, h, esc, paragraphs, wordParagraphs, revealWords, stars, floaters, canvasLayer, tapSparkles, T, reduce, canHover, pointer, depth, burst, floatText, shootingStars };
+  window.FX = { hide, fadeUp, sceneBase, every, stopper, E, anim, wait, rand, pick, clamp, h, esc, paragraphs, wordParagraphs, revealWords, follow, scrollHint, BR, stars, floaters, canvasLayer, tapSparkles, T, reduce, canHover, pointer, depth, burst, floatText, shootingStars };
 })();

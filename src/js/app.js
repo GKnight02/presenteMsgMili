@@ -3,10 +3,15 @@
    ========================================================= */
 (function () {
   /* ---- lee mensajes.js y normaliza el texto ---- */
+  /* las líneas que empiezan con ">" son versos: conservan su salto de línea
+     (se marca con FX.BR dentro del párrafo) */
+  const BR = FX.BR;
   const clean = (t) => String(t || '')
     .replace(/\r/g, '')
     .split(/\n\s*\n/)
-    .map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean).join(' '))
+    .map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean)
+      .map((l, i) => (/^>/.test(l) ? (i ? BR : '') + l.replace(/^>\s*/, '') : (i ? ' ' : '') + l))
+      .join(''))
     .filter(Boolean)
     .join('\n\n');
 
@@ -202,6 +207,9 @@
   const players = tracks.length ? [new Audio(), new Audio()] : [];
   const CROSS = FX.clamp(Number(aj.fundido ?? 5) || 0, 0.5, 15); // segundos de fundido
   const vol = FX.clamp(Number(aj.volumen ?? 0.7) || 0, 0, 1);
+  /* en iPhone/iPad el volumen no se puede cambiar por código: ahí no hay
+     fundido, se pasa directo de una canción a la otra al terminar */
+  const canFade = (() => { try { const t = new Audio(); t.volume = 0.5; return Math.abs(t.volume - 0.5) < 0.01; } catch (e) { return false; } })();
   let cur = 0, trackIdx = 0, fails = 0, muted = false;
   let songStarted = false, songDone = false;
   const load = (a, i) => { a.src = tracks[i]; a.dataset.i = String(i); };
@@ -214,28 +222,32 @@
     /* poco antes de que termine la canción actual, empieza la siguiente */
     a.addEventListener('timeupdate', () => {
       if (a !== players[cur] || songDone || !isFinite(a.duration)) return;
-      if (a.duration - a.currentTime <= Math.min(CROSS, a.duration / 3)) next();
+      if (a.duration - a.currentTime <= (canFade ? Math.min(CROSS, a.duration / 3) : 0.25)) nextSong();
     });
-    a.addEventListener('ended', () => { if (a === players[cur] && !songDone) next(); });
+    a.addEventListener('ended', () => { if (a === players[cur] && !songDone) nextSong(); });
   });
   const muteBtn = document.getElementById('muteBtn');
   const showMute = () => { muteBtn.hidden = !(players.length && songStarted && !songDone); };
   /* cambia el volumen de un reproductor poco a poco;
-     la promesa da true si terminó y false si otro fundido lo interrumpió */
+     la promesa da true si terminó y false si otro fundido lo interrumpió.
+     Usa setTimeout (no requestAnimationFrame): requestAnimationFrame se
+     detiene si la ventana queda tapada o se apaga la pantalla del celular,
+     y la siguiente canción se quedaba sonando con volumen 0. */
   function fadeEl(a, target, ms) {
     const tok = (a._fadeTok = (a._fadeTok || 0) + 1), from = a.volume, t0 = performance.now();
+    if (!canFade) ms = 0;
     return new Promise((res) => {
       const step = () => {
         if (tok !== a._fadeTok) return res(false);
-        const p = Math.min(1, (performance.now() - t0) / ms);
-        a.volume = from + (target - from) * p;
-        if (p < 1) requestAnimationFrame(step); else res(true);
+        const p = ms > 0 ? Math.min(1, (performance.now() - t0) / ms) : 1;
+        try { a.volume = from + (target - from) * p; } catch (e) { /* volumen fijo */ }
+        if (p < 1) setTimeout(step, 50); else res(true);
       };
-      requestAnimationFrame(step);
+      step();
     });
   }
   /* pasa a la siguiente canción de la lista (tras la última, la primera) */
-  function next() {
+  function nextSong() {
     const out = players[cur], inc = players[1 - cur];
     const ni = (trackIdx + 1) % tracks.length, ms = CROSS * 1000;
     cur = 1 - cur;
@@ -245,7 +257,7 @@
     inc.volume = 0;
     inc.muted = muted;
     inc.play().then(() => { fails = 0; fadeEl(inc, vol, ms); })
-      .catch(() => { if (!songDone && ++fails < tracks.length) next(); });
+      .catch(() => { if (!songDone && ++fails < tracks.length) nextSong(); });
     if (!out.paused) {
       fadeEl(out, 0, ms).then((done) => {
         if (done && out !== players[cur]) { out.pause(); load(out, (ni + 1) % tracks.length); }

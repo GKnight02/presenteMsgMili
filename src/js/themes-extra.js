@@ -595,7 +595,7 @@
         }, 250);
         st(() => clearInterval(clock));
         await new Promise((res) => {
-          words.forEach((w, i) => setTimeout(() => { w.classList.add('sung'); if (i === words.length - 1) setTimeout(res, 400); }, FX.reduce.matches ? 0 : i * step));
+          words.forEach((w, i) => setTimeout(() => { w.classList.add('sung'); FX.follow(w); if (i === words.length - 1) setTimeout(res, 400); }, FX.reduce.matches ? 0 : i * step));
           if (!words.length) res();
         });
         st(every(() => {

@@ -252,7 +252,7 @@
     const box = h('div', 'rpg-box');
     box.innerHTML = '<div class="rpg-name"></div><div class="rpg-text scroll"><span class="shown"></span><span class="rest"></span></div><span class="rpg-caret">▼</span>';
     box.querySelector('.rpg-name').textContent = msg.de;
-    const text = String(msg.mensaje).trim();
+    const text = String(msg.mensaje).trim().split(FX.BR).join(String.fromCharCode(10));
     const shown = box.querySelector('.shown'), rest = box.querySelector('.rest'), caret = box.querySelector('.rpg-caret');
     rest.textContent = text;
     el.append(hud, banner, hero, box);
@@ -293,6 +293,7 @@
     const finish = () => {
       if (done) return;
       done = true; cancelAnimationFrame(raf); shown.textContent = text; rest.textContent = ''; caret.classList.add('on');
+      FX.follow(shown);
       expBar.style.transform = 'scaleX(1)';
       celebrate();
       setTimeout(typed, 900);
@@ -339,6 +340,7 @@
           shown.textContent = text.slice(0, n);
           rest.textContent = text.slice(n);
           expBar.style.transform = `scaleX(${n / text.length})`;
+          FX.follow(shown);
           if (n >= text.length) return finish();
           raf = requestAnimationFrame(tick);
         };
@@ -752,6 +754,18 @@
 
   function message(ctx) {
     const s = REG[styleOf(ctx.idx)].fn(ctx);
+    /* mensajes largos: letra un poco más compacta y aviso de "desliza" */
+    const len = String(ctx.msg.mensaje).length;
+    if (len > 420) s.el.classList.add('largo');
+    if (len > 900) s.el.classList.add('muy-largo');
+    const enter = s.enter;
+    if (enter) {
+      s.enter = function () {
+        return Promise.resolve(enter.apply(this, arguments)).finally(() => {
+          if (s.el.isConnected) FX.scrollHint(s.el);
+        });
+      };
+    }
     s.el.setAttribute('aria-label', `Carta ${ctx.idx + 1} de ${ctx.total}, de ${ctx.msg.de}`);
     return s;
   }

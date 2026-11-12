@@ -153,3 +153,41 @@
 @media (prefers-reduced-motion: reduce) {
   .x-lbird { opacity: 1; }
 }
+
+/* =========================================================
+   MENSAJES LARGOS — letra algo más compacta para que quepa más
+   texto en celular, versos y aviso de "desliza para leer más"
+   ========================================================= */
+.scene.largo { --text-body: clamp(0.98rem, 0.92rem + 0.3vw, 1.14rem); }
+.scene.muy-largo { --text-body: clamp(0.95rem, 0.9rem + 0.25vw, 1.1rem); }
+.scene.largo .noche-body { font-size: clamp(1.08rem, 0.95rem + 0.8vw, 1.5rem); line-height: 1.5; text-wrap: pretty; }
+.scene.largo .note-body { font-size: clamp(1.28rem, 1.15rem + 0.5vw, 1.6rem); line-height: 1.28; }
+.scene.largo .rpg-text { max-height: min(40vh, 320px); }
+.scene.largo .lt-body,
+.scene.largo .cine-card { line-height: 1.6; }
+
+/* versos (líneas que empiezan con ">" en mensajes.js) */
+p.verso { font-style: italic; line-height: 1.55; padding-left: 0.9em; border-left: 3px solid currentColor; border-left-color: color-mix(in srgb, currentColor 25%, transparent); }
+.lt-body p.verso { border-left-color: rgba(255, 134, 176, 0.45); }
+
+/* aviso fijo al borde inferior del área con scroll */
+.more-hint { position: sticky; bottom: 4px; height: 0; display: flex; justify-content: center; pointer-events: none; z-index: 5; }
+.more-hint span {
+  transform: translateY(calc(-100% - 2px));
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px;
+  background: rgba(43, 23, 51, 0.82); color: #fff;
+  font-family: var(--f-pixel); font-size: 0.72rem; letter-spacing: 0.04em; white-space: nowrap;
+  box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.5);
+  opacity: 0; transition: opacity 350ms ease;
+}
+.more-hint.on span { opacity: 1; }
+.more-hint b { display: inline-block; animation: moreBob 1.4s ease-in-out infinite; }
+@keyframes moreBob { 50% { transform: translateY(3px); } }
+
+/* en pantallas anchas los mensajes muy largos usan tarjetas más anchas
+   (menos scroll); en celular no cambia nada */
+@media (min-width: 900px) {
+  .scene.muy-largo :is(.letter, .jardin-wrap, .jardin-card, .lluvia-wrap, .lluvia-card, .scrap-wrap, .nieve-wrap, .perro-wrap, .mew-wrap, .globo-wrap, .mar-roll, .tz-tilt) { width: min(700px, 100%); }
+}
+.more-hint span { line-height: 1.3; padding: 6px 14px; font-size: 0.75rem; }

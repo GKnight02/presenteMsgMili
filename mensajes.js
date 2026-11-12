@@ -9,6 +9,8 @@
       - Puedes usar varias líneas.
       - Deja una línea en blanco para empezar otro párrafo.
       - No uses el carácter ` dentro del mensaje.
+      - Para versos (canciones, poemas) empieza cada línea con  >
+        y se respetará cada salto de línea.
 
    El orden aquí es el orden en que se mostrarán las cartas.
 
@@ -47,69 +49,215 @@
 const MENSAJES = [
 
   {
-    nombre: 'Persona 1',
+    nombre: 'Melisa Mantilla',
+    estilo: 'carta',
     mensaje: `
-      Mili, sé que estos días pesan, pero quiero que sepas
-      que no tienes que cargar con todo tú sola.
+      Mi querida Mili ❤️
 
-      Aquí estoy, hoy y siempre, para lo que necesites.
+      Quiero que sepas que cuentas conmigo, que no estás sola y que, aunque sé
+      que estás atravesando un momento muy difícil, deseo de corazón que
+      encuentres mucha fortaleza para afrontar cada día.
+
+      Ten mucha fe en Dios, confía en él y pídele que te dé las fuerzas
+      necesarias para seguir adelante. Estoy segura de que encontrarás en él
+      ese refugio, esa paz y esa fortaleza que tanto necesitas en estos momentos.
+
+      Aquí estoy para escucharte, apoyarte y acompañarte en lo que necesites.
+      No dudes en buscarme que ahí estaré.
+
+      Te mando un abrazo enorme, recuerda que te quiero mucho mi Mili.
     `,
   },
 
   {
-    nombre: 'Persona 2',
+    nombre: 'Diana Cabrera',
+    estilo: 'luciernagas',
     mensaje: `
-      Eres de las personas más fuertes que conozco, incluso cuando
-      no te sientes así. Respira, ve paso a paso. Lo estás haciendo
-      mejor de lo que crees.
+      Amiga, ojalá pudieras verte con los ojos de quienes te queremos, para que
+      descubras la fuerza y la luz que llevas dentro, incluso cuando tú no logras
+      encontrarlas. No permitas que este capítulo difícil te haga olvidar lo
+      valiosa que eres.
+
+      A veces la vida nos rompe los planes, pero no los sueños ni la posibilidad
+      de volver a empezar. Abraza tu proceso, no pierdas tu esencia y recuerda
+      que todavía hay mucha vida bonita esperándote. Te mereces volver a ser
+      feliz. ❤️
     `,
   },
 
   {
-    nombre: 'Persona 3',
+    nombre: 'Miriam Otiniano',
+    estilo: 'lluvia',
     mensaje: `
-      Cada vez que te ríes, el lugar se ilumina. Vas a volver a reír así,
-      te lo prometo. Mientras tanto, déjanos acompañarte.
+      ¡Hola Milagros!
+
+      Sé que estás pasando por un momento difícil y que hay días que pueden
+      tornarse grises. A veces, la vida nos pone frente a situaciones que no
+      esperamos, pero quiero pedirte que nunca pierdas esa fortaleza que te
+      caracteriza. Recuerda que aquí cuentas con personas que te aprecian
+      muchísimo y que te desean lo mejor.
+
+      De todo corazón, te envío un abrazo muy fuerte a la distancia.
     `,
   },
 
   {
-    nombre: 'Persona 4',
+    nombre: 'Greysi Zavaleta',
+    estilo: 'noche',
     mensaje: `
-      ¡Misión de hoy: recordar lo increíble que eres! Recompensa: un abrazo
-      gigante de mi parte cuando nos veamos.
+      Milagros, hay cosas que no podemos controlar como quisiéramos, como que
+      todos nuestros seres queridos se encuentren bien, pero confío en que todo
+      irá lo mejor posible.
+
+      Le pido a Dios que te dé mucha fuerza y fortaleza en estos momentos
+      difíciles que tienes que afrontar. Estoy orando por que todo salga bien
+      para tu familia.
+
+      Cuentas conmigo para lo que necesites y tienes mi apoyo incondicional.
+      Tal vez no pueda estar físicamente apoyándote, pero mis oraciones van
+      dirigidas para tu familia. Te mando un fuerte abrazo. 🩷
     `,
   },
 
   {
-    nombre: 'Persona 5',
+    nombre: 'Greysi Guzman',
+    estilo: 'jardin',
     mensaje: `
-      Guardo muchos recuerdos bonitos contigo y sé que vendrán muchos más.
-      Esto también va a pasar, y vas a salir más brillante.
+      Amiga Milagros, tú sabes el cariño y el aprecio tan grande que te tengo.
+      Tú bien sabes cómo nos conocimos y cómo, en una oportunidad, cuando estabas
+      pasando por momentos difíciles, te brindé mis palabras de aliento. Hoy
+      nuevamente quiero hacerlo.
+
+      Sé que no es fácil pasar por una situación así. No existen palabras que
+      puedan calmar el dolor que uno siente cuando una persona a quien ama con
+      todo su corazón, como lo es una madre, se encuentra delicada de salud.
+
+      Solo quiero decirte que tengas mucha fortaleza, amiga. Trata de mantenerte
+      fuerte y que tu mamita te vea así. Dale todo tu amor, abrázala, llénala de
+      besos y dile muchas veces cuánto la amas. Disfruta cada momento a su lado
+      y ten mucha fe, porque todo está en las manos de Dios.
+
+      Le pido a Dios que te dé esa fortaleza, esa tranquilidad y esa paz que
+      tanto necesitas en estos momentos, y que también cuide de la salud de tu
+      mamita.
+
+      Te quiero mucho, amiga. Recuerda que aquí tienes a alguien que te aprecia
+      y que te acompaña de corazón en estos momentos difíciles.
+
+      Con mucho cariño, tu amiga Greisy. ❤️
     `,
   },
 
   {
-    nombre: 'Persona 6',
+    nombre: 'Rita Enciso',
+    estilo: 'sakura',
     mensaje: `
-      Después de la tormenta siempre sale el sol, aunque a veces tarde
-      un poquito. Te esperamos con paciencia y con mucho cariño.
+      Milagritos, deseo de todo corazón que tu mamita se recupere pronto y no
+      dejes de confiar en nuestro Padre amado 🙌🙏
+
+      Que sea Él quien le brinde la salud y el bienestar que ella necesita.
+
+      Qué lindo que la acompañes en estos momentos, llénala de mucho amor y
+      cuidados 🙌🤗
+
+      Te mando un abrazo con mucho cariño y fortaleza 🤗🤗🤗💖
     `,
   },
 
   {
-    nombre: 'Persona 7',
+    nombre: 'Pamela Palacios',
+    estilo: 'musica',
     mensaje: `
-      Si algún día sientes que no puedes más, piensa en todas las personas
-      que te quieren. Somos muchas, y estamos contigo.
+      ¡Hola Milagros! Te envío este himno bonito porque Jesucristo es quien
+      puede sentir lo que estás pasando ahora, y sí, puedes contar conmigo
+      también. Un abrazo 🤗
+
+      > No temas, no te angusties,
+      > oigo al Señor decir.
+      > En Su bondad descanso,
+      > dejo el temor huir.
+
+      > A Cristo paso a paso
+      > yo siempre seguiré.
+      > Si Él cuida de las aves,
+      > cuidará de mí también.
+      > Si Él cuida de las aves,
+      > cuidará de mí también. 🎵🎶
     `,
   },
 
   {
-    nombre: 'Persona 8',
+    nombre: 'Nohelia Izquierdo',
+    estilo: 'videojuego',
     mensaje: `
-      Las flores no florecen todas al mismo tiempo, y está bien.
-      Tómate tu tiempo, Mili. Tu momento va a llegar.
+      Mili, sé que estás pasando por un momento difícil, pero quiero que
+      recuerdes que ninguna situación difícil dura para siempre. Ten mucha
+      fuerza, paciencia y fe en que las cosas van a mejorar; incluso en los días
+      más complicados, siempre hay una razón para seguir adelante.
+
+      Los problemas no duran para siempre. No pierdas la esperanza en que todo
+      se va a solucionar. ¡Mucho ánimo y un abracito a la distancia! ❤️
+    `,
+  },
+
+  {
+    nombre: 'Ana Lucia Becerra',
+    estilo: 'scrapbook',
+    mensaje: `
+      Hola Mila, ¿cómo te encuentras?
+
+      No sé qué situación estés pasando en este momento, pero quiero que sepas
+      que eres una mujer fuerte y que, aunque hoy estés atravesando un momento
+      difícil, confío en que poco a poco todo irá mejorando.
+
+      No te desanimes, date tiempo y recuerda lo valiosa que eres. Que nunca te
+      falten fuerzas para seguir adelante ni motivos para sonreír. ¡Te deseo
+      mucha fortaleza y cosas bonitas! 💗
+    `,
+  },
+
+  {
+    nombre: 'Wendy Lecca',
+    estilo: 'globos',
+    mensaje: `
+      Mili, los momentos difíciles ocurren más a menudo de lo que imaginas, pero
+      poco a poco vas a poder superar todas las adversidades y sentirte libre y
+      plena si te lo propones.
+
+      Mantente fuerte, amiga. Recuerda que aquí tienes a un grupo que te aprecia,
+      te quiere mucho y espera que siempre estés bien. Te quiero mucho.
+    `,
+  },
+
+  {
+    nombre: 'Gerardo A.',
+    estilo: 'mew',
+    mensaje: `
+      Mili, sé que estás atravesando un momento muy difícil y quiero que
+      recuerdes que no tienes que llevar todo ese peso tú sola. A veces las
+      circunstancias nos sobrepasan y está bien sentirse cansada, triste o no
+      tener fuerzas.
+
+      No olvides que tienes personas que te quieren, que se preocupan por ti y
+      que están dispuestas a acompañarte cuando más lo necesites. También es
+      importante que te permitas descansar y cuidar de ti misma.
+
+      Recuerda que Dios nos enseña que debemos llevar las cargas los unos de los
+      otros, y que apoyarnos en quienes nos rodean también es una forma de
+      encontrar fuerzas para seguir adelante. Afronta cada día a tu propio ritmo,
+      un paso a la vez. ❤️
+    `,
+  },
+
+  {
+    nombre: 'Kinmerlyn Gavidia',
+    estilo: 'pochita',
+    mensaje: `
+      Mily amiga, sé que estás pasando por un mal momento, pero debes ser fuerte
+      por tu familia. Eres una persona muy fuerte que puede con todo.
+
+      Te quiero mucho y siempre estaré para ti, en cualquier momento y a
+      cualquier hora. Te quiero mucho.
     `,
   },
 
@@ -136,7 +284,7 @@ const AJUSTES = {
   canciones: [
     'musica/primero.mp3',
     'musica/segundo.mp3',
-    // 'musica/tercera.mp3',
+    'musica/tercera.mp3',
   ],
 
   // Segundos que dura el fundido entre una canción y la siguiente
