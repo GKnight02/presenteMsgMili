@@ -127,12 +127,20 @@ const AJUSTES = {
   // Frase debajo del mensaje final
   finalSub: 'Cada una de estas cartas es tuya para siempre. Vuelve a leerlas cuando lo necesites.',
 
-  // Canción (opcional): empieza a sonar justo cuando ella abre la caja
-  // y suena una sola vez (no se repite).
-  // 1. Copia el archivo .mp3 dentro de la carpeta "musica".
-  // 2. Escribe aquí su nombre, por ejemplo 'musica/the-middle.mp3'.
-  // Déjalo vacío ('') si no quieres música.
-  cancion: 'musica/cancion.mp3',
+  // Música (opcional): empieza a sonar justo cuando ella abre la caja.
+  // Las canciones suenan en este orden, con un fundido suave entre una y
+  // otra, y al terminar la última vuelve a empezar por la primera.
+  // 1. Copia los archivos .mp3 dentro de la carpeta "musica".
+  // 2. Escribe aquí sus nombres, en el orden en que quieres que suenen.
+  // Deja la lista vacía ([]) si no quieres música.
+  canciones: [
+    'musica/primero.mp3',
+    'musica/segundo.mp3',
+    // 'musica/tercera.mp3',
+  ],
+
+  // Segundos que dura el fundido entre una canción y la siguiente
+  fundido: 5,
 
   // Volumen de la canción, de 0 (silencio) a 1 (máximo)
   volumen: 0.5,

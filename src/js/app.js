@@ -194,56 +194,93 @@
     updateUI();
   }
 
-  /* ---- canción: suena una sola vez, desde que se abre la caja ---- */
-  const song = (() => {
-    const src = typeof aj.cancion === 'string' ? aj.cancion.trim() : '';
-    if (!src) return null;
-    const a = new Audio();
+  /* ---- música: lista de canciones desde que se abre la caja.
+     Entre una y otra hay un fundido cruzado (la que termina baja mientras la
+     siguiente sube) y, al acabar la última, vuelve a empezar por la primera. ---- */
+  const tracks = (Array.isArray(aj.canciones) ? aj.canciones : [aj.cancion])
+    .filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim());
+  const players = tracks.length ? [new Audio(), new Audio()] : [];
+  const CROSS = FX.clamp(Number(aj.fundido ?? 5) || 0, 0.5, 15); // segundos de fundido
+  const vol = FX.clamp(Number(aj.volumen ?? 0.7) || 0, 0, 1);
+  let cur = 0, trackIdx = 0, fails = 0, muted = false;
+  let songStarted = false, songDone = false;
+  const load = (a, i) => { a.src = tracks[i]; a.dataset.i = String(i); };
+  players.forEach((a) => {
     a.preload = 'auto';
     a.loop = false;
-    a.src = src;
-    a.addEventListener('error', () => console.warn(`No se pudo cargar la canción "${src}". Revisa el nombre en mensajes.js y que el archivo esté en la carpeta musica.`));
-    return a;
-  })();
+    a.addEventListener('error', () => {
+      if (a.dataset.i) console.warn(`No se pudo cargar la canción "${tracks[+a.dataset.i]}". Revisa el nombre en mensajes.js y que el archivo esté en la carpeta musica.`);
+    });
+    /* poco antes de que termine la canción actual, empieza la siguiente */
+    a.addEventListener('timeupdate', () => {
+      if (a !== players[cur] || songDone || !isFinite(a.duration)) return;
+      if (a.duration - a.currentTime <= Math.min(CROSS, a.duration / 3)) next();
+    });
+    a.addEventListener('ended', () => { if (a === players[cur] && !songDone) next(); });
+  });
   const muteBtn = document.getElementById('muteBtn');
-  let songStarted = false, songDone = false, fadeTok = 0;
-  const showMute = () => { muteBtn.hidden = !(song && songStarted && !songDone); };
-  /* cambia el volumen poco a poco; devuelve una promesa al terminar */
-  function fadeTo(target, ms) {
-    const tok = ++fadeTok, from = song.volume, t0 = performance.now();
+  const showMute = () => { muteBtn.hidden = !(players.length && songStarted && !songDone); };
+  /* cambia el volumen de un reproductor poco a poco;
+     la promesa da true si terminó y false si otro fundido lo interrumpió */
+  function fadeEl(a, target, ms) {
+    const tok = (a._fadeTok = (a._fadeTok || 0) + 1), from = a.volume, t0 = performance.now();
     return new Promise((res) => {
       const step = () => {
-        if (tok !== fadeTok) return res();
+        if (tok !== a._fadeTok) return res(false);
         const p = Math.min(1, (performance.now() - t0) / ms);
-        song.volume = from + (target - from) * p;
-        if (p < 1) requestAnimationFrame(step); else res();
+        a.volume = from + (target - from) * p;
+        if (p < 1) requestAnimationFrame(step); else res(true);
       };
       requestAnimationFrame(step);
     });
   }
+  /* pasa a la siguiente canción de la lista (tras la última, la primera) */
+  function next() {
+    const out = players[cur], inc = players[1 - cur];
+    const ni = (trackIdx + 1) % tracks.length, ms = CROSS * 1000;
+    cur = 1 - cur;
+    trackIdx = ni;
+    if (inc.dataset.i !== String(ni)) load(inc, ni);
+    inc.currentTime = 0;
+    inc.volume = 0;
+    inc.muted = muted;
+    inc.play().then(() => { fails = 0; fadeEl(inc, vol, ms); })
+      .catch(() => { if (!songDone && ++fails < tracks.length) next(); });
+    if (!out.paused) {
+      fadeEl(out, 0, ms).then((done) => {
+        if (done && out !== players[cur]) { out.pause(); load(out, (ni + 1) % tracks.length); }
+      });
+    }
+  }
   function playSong() {
-    if (!song || songStarted) return;
+    if (!players.length || songStarted) return;
     songStarted = true;
-    const target = FX.clamp(Number(aj.volumen ?? 0.7) || 0, 0, 1);
-    song.volume = 0;
-    song.play().then(() => { showMute(); fadeTo(target, 2000); })
+    const [a, b] = players;
+    load(a, 0);
+    a.volume = 0;
+    a.play().then(() => { showMute(); fadeEl(a, vol, 2000); })
       .catch(() => { /* sin archivo o el navegador no lo permitió: sigue sin música */ });
+    /* deja lista la siguiente; se "desbloquea" ahora, con el toque de ella,
+       para que los navegadores del móvil la dejen sonar más tarde */
+    load(b, 1 % tracks.length);
+    b.muted = true;
+    b.play().then(() => { if (b !== players[cur]) { b.pause(); b.currentTime = 0; } b.muted = muted; })
+      .catch(() => { b.muted = muted; });
   }
   /* al abrir el cofre: si todavía suena, se apaga suavemente y no vuelve */
   function stopSong(ms = 2200) {
-    if (!song || !songStarted || songDone) return;
+    if (!players.length || !songStarted || songDone) return;
     songDone = true;
     showMute();
-    if (song.paused) return;
-    fadeTo(0, ms).then(() => song.pause());
+    players.forEach((a) => { if (!a.paused) fadeEl(a, 0, ms).then(() => a.pause()); });
   }
-  if (song) song.addEventListener('ended', () => { songDone = true; showMute(); });
   muteBtn.addEventListener('click', () => {
-    song.muted = !song.muted;
-    muteBtn.classList.toggle('off', song.muted);
-    muteBtn.setAttribute('aria-pressed', String(song.muted));
-    muteBtn.setAttribute('aria-label', song.muted ? 'Activar la música' : 'Silenciar la música');
-    muteBtn.title = song.muted ? 'Activar música' : 'Silenciar';
+    muted = !muted;
+    players.forEach((a) => { a.muted = muted; });
+    muteBtn.classList.toggle('off', muted);
+    muteBtn.setAttribute('aria-pressed', String(muted));
+    muteBtn.setAttribute('aria-label', muted ? 'Activar la música' : 'Silenciar la música');
+    muteBtn.title = muted ? 'Activar música' : 'Silenciar';
   });
 
   function goIntro() {

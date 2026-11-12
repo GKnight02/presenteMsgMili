@@ -77,10 +77,10 @@ git push -u origin main
 - `Esc` vuelve al cofre (una vez desbloqueado).
 - El navegador recuerda que el cofre ya fue abierto. Desde entonces aparece un ícono discreto de cofre arriba a la derecha, tanto en la portada como en cada carta, para ir directo al cofre.
 
-## Canción
+## Música
 
-1. Copia el archivo `.mp3` en la carpeta [`musica/`](musica/).
-2. En `mensajes.js`, dentro de `AJUSTES`, escribe su nombre en `cancion` (por ejemplo `'musica/the-middle.mp3'`) y ajusta `volumen` (de 0 a 1).
-3. La canción empieza en el momento en que ella abre la caja y suena una sola vez. Si no hay archivo, todo funciona igual, sin música.
+1. Copia los archivos `.mp3` en la carpeta [`musica/`](musica/).
+2. En `mensajes.js`, dentro de `AJUSTES`, escribe sus nombres en la lista `canciones`, en el orden en que deben sonar (por ejemplo `'musica/here-comes-the-sun.mp3'`), y ajusta `volumen` (de 0 a 1).
+3. La música empieza en el momento en que ella abre la caja. Cuando una canción está por terminar, la siguiente entra con un fundido suave (dura `fundido` segundos, 5 por defecto); al acabar la última, vuelve a empezar por la primera. Si no hay archivos, todo funciona igual, sin música.
 4. Mientras suena aparece un ícono discreto de parlante arriba a la derecha (junto al cofre) para silenciarla o reactivarla.
-5. Cuando ella abre el cofre, si la canción sigue sonando, se apaga suavemente y ya no vuelve a sonar.
+5. Cuando ella abre el cofre, si la música sigue sonando, se apaga suavemente y ya no vuelve a sonar.

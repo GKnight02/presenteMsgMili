@@ -1,9 +1,14 @@
-Pon aquí el archivo de la canción (formato .mp3).
+Pon aquí los archivos de las canciones (formato .mp3).
 
-Después abre mensajes.js y, al final, en AJUSTES, escribe su nombre en "cancion".
-Por ejemplo, si el archivo se llama the-middle.mp3:
+Después abre mensajes.js y, al final, en AJUSTES, escribe sus nombres en la
+lista "canciones", en el orden en que quieres que suenen. Por ejemplo:
 
-  cancion: 'musica/the-middle.mp3',
+  canciones: [
+    'musica/here-comes-the-sun.mp3',
+    'musica/three-little-birds.mp3',
+    'musica/lovely-day.mp3',
+  ],
 
-La canción empieza cuando ella abre la caja y suena una sola vez.
-Si no hay archivo, la página funciona igual, solo que sin música.
+La música empieza cuando ella abre la caja. Entre una canción y otra hay un
+fundido suave y, al terminar la última, vuelve a empezar por la primera.
+Si no hay archivos, la página funciona igual, solo que sin música.
