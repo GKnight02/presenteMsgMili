@@ -230,7 +230,7 @@ const MENSAJES = [
   },
 
   {
-    nombre: 'Gerardo A.',
+    nombre: '???',
     estilo: 'mew',
     mensaje: `
       Mili, sé que estás atravesando un momento muy difícil y quiero que
